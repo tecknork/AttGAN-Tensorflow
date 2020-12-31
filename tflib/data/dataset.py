@@ -81,6 +81,7 @@ def memory_data_batch_dataset(memory_data,
 def disk_image_batch_dataset(img_paths,
                              batch_size,
                              labels=None,
+                             labels_b=None,
                              drop_remainder=True,
                              n_prefetch_batch=1,
                              filter_fn=None,
@@ -101,12 +102,14 @@ def disk_image_batch_dataset(img_paths,
     if labels is None:
         memory_data = img_paths
     else:
-        memory_data = (img_paths, labels)
+        memory_data = (img_paths, labels,labels_b)
 
     def parse_fn(path, *label):
         img = tf.io.read_file(path)
         img = tf.image.decode_png(img, 3)  # fix channels to 3
+
         return (img,) + label
+
 
     if map_fn:  # fuse `map_fn` and `parse_fn`
         def map_fn_(*args):

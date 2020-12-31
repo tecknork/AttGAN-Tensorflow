@@ -18,11 +18,26 @@ import module
 
 default_att_names = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses',
                      'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
+
+default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
+                           'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered', 'coiled',
+                           'cooked', 'cored', 'cracked', 'creased', 'crinkled', 'crumpled', 'crushed', 'curved', 'cut',
+                           'damp', 'dark', 'deflated', 'dented', 'diced', 'dirty', 'draped', 'dry', 'dull', 'empty',
+                           'engraved', 'eroded', 'fallen', 'filled', 'foggy', 'folded', 'frayed', 'fresh', 'frozen',
+                           'full', 'grimy', 'heavy', 'huge', 'inflated', 'large', 'lightweight', 'loose', 'mashed',
+                           'melted', 'modern', 'moldy', 'molten', 'mossy', 'muddy', 'murky', 'narrow', 'new', 'old',
+                           'open', 'painted', 'peeled', 'pierced', 'pressed', 'pureed', 'raw', 'ripe', 'ripped', 'rough',
+                           'ruffled', 'runny', 'rusty', 'scratched', 'sharp', 'shattered', 'shiny', 'short', 'sliced',
+                           'small', 'smooth', 'spilled', 'splintered', 'squished', 'standing', 'steaming', 'straight',
+                           'sunny', 'tall', 'thawed', 'thick', 'thin', 'tight', 'tiny', 'toppled', 'torn', 'unpainted',
+                           'unripe', 'upright', 'verdant', 'viscous', 'weathered', 'wet', 'whipped',
+                           'wide', 'wilted', 'windblown', 'winding', 'worn', 'wrinkled', 'young']
+
 py.arg('--att_names', choices=data.ATT_ID.keys(), nargs='+', default=default_att_names)
 
-py.arg('--img_dir', default='./data/img_celeba/aligned/align_size(572,572)_move(0.250,0.000)_face_factor(0.450)_jpg/data')
-py.arg('--train_label_path', default='./data/img_celeba/train_label.txt')
-py.arg('--val_label_path', default='./data/img_celeba/val_label.txt')
+py.arg('--img_dir', default='./data/mit-states-original/images')
+py.arg('--train_label_path', default='./data/mit-states-original/train_composeAE_AttGAN.txt')
+py.arg('--val_label_path',default='./data/mit-states-original/train_composeAE_AttGAN.txt')
 py.arg('--load_size', type=int, default=143)
 py.arg('--crop_size', type=int, default=128)
 
@@ -303,7 +318,7 @@ try:
                 checkpoint.save(step)
 
             # sample
-            if step % (100 * (args.n_d + 1)) == 0:
+            if step % (1 * (args.n_d + 1)) == 0:
                 sample(ep, it)
 except Exception:
     traceback.print_exc()
