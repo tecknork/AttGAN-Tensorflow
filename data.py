@@ -127,3 +127,97 @@ def check_attribute_conflict(att_batch, att_name, att_names):
         #             _set(att, 0, n)
 
     return att_batch
+
+def make_mitstates_dataset(img_dir,
+                        label_path,
+                        att_names,
+                        batch_size,
+                        load_size=286,
+                        crop_size=256,
+                        training=True,
+                        drop_remainder=True,
+                        shuffle=True,
+                        repeat=1):
+
+        img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
+        img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
+        labels = np.genfromtxt(label_path, dtype=float, usecols=range(1, 116))
+        labels = labels[:, np.array([ATT_ID[att_name] for att_name in att_names])]
+        labels_b = np.genfromtxt(label_path, dtype=float, usecols=range(116, 231))
+        labels_b = labels_b[:, np.array([ATT_ID[att_name] for att_name in att_names])]
+
+        if shuffle:
+            idx = np.random.permutation(len(img_paths))
+            img_paths = img_paths[idx]
+            labels = labels[idx]
+            labels_b = labels_b[idx]
+
+        if training:
+            def map_fn_(img, label,label_b):
+                img = tf.image.resize(img, [load_size, load_size])
+                # img = tl.random_rotate(img, 5)
+                img = tf.image.random_flip_left_right(img)
+                img = tf.image.random_crop(img, [crop_size, crop_size, 3])
+                # img = tl.color_jitter(img, 25, 0.2, 0.2, 0.1)
+                # img = tl.random_grayscale(img, p=0.3)
+                img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
+                #label = (label + 1) // 2
+                return img, label,label_b
+        else:
+            def map_fn_(img, label,label_b):
+                img = tf.image.resize(img, [load_size, load_size])
+                img = tl.center_crop(img, size=crop_size)
+                img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
+                #label = (label + 1) // 2
+                return img, label,label_b
+
+        dataset = tl.disk_image_batch_dataset(img_paths,
+                                              batch_size,
+                                              labels=labels,
+                                              labels_b=labels_b,
+                                              drop_remainder=drop_remainder,
+                                              map_fn=map_fn_,
+                                              shuffle=shuffle,
+                                              repeat=repeat)
+
+        if drop_remainder:
+            len_dataset = len(img_paths) // batch_size
+        else:
+            len_dataset = int(np.ceil(len(img_paths) / batch_size))
+
+        return dataset, len_dataset
+
+def parse_split():
+
+        def parse_pairs(pair_list):
+            with open(pair_list,'r') as f:
+                pairs = f.read().strip().split('\n')
+                pairs = [t.split() for t in pairs]
+                pairs = list(map(tuple, pairs))
+            attrs, objs = zip(*pairs)
+            return attrs, objs, pairs
+
+        root= "./data/mit-states-original/compositional-split"
+        tr_attrs, tr_objs, tr_pairs = parse_pairs('%s/train_pairs.txt'%(root))
+        ts_attrs, ts_objs, ts_pairs = parse_pairs('%s/test_pairs.txt'%(root))
+
+        all_attrs, all_objs =  sorted(list(set(tr_attrs+ts_attrs))), sorted(list(set(tr_objs+ts_objs)))
+        all_pairs = sorted(list(set(tr_pairs + ts_pairs)))
+
+        return all_attrs, all_objs, all_pairs, tr_pairs, ts_pairs
+
+
+def mit_states_neg_pool(train_data,attrs,objs):
+
+    samples_grouped_by_obj = [[] for _ in range(len(objs))]
+    for i, x in enumerate(train_data):
+        samples_grouped_by_obj[x[4]].append(i)
+
+    neg_pool = []  # [obj_id][attr_id] => list of sample id
+    for obj_id in range(len(objs)):
+        neg_pool.append([])
+        for attr_id in range(len(attrs)):
+            neg_pool[obj_id].append(
+                [i for i in samples_grouped_by_obj[obj_id] if
+                 train_data[i][3] != attr_id]
+            )

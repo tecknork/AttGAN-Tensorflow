@@ -64,6 +64,9 @@
         conda install opencv scikit-image tqdm tensorflow-gpu=1.15
 
         conda install -c conda-forge oyaml
+      
+        conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
+      
         ```
 
     - *NOTICE: if you create a new conda environment, remember to activate it before any other command*
