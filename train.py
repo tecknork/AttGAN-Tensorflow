@@ -32,7 +32,8 @@ default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', '
                            'sunny', 'tall', 'thawed', 'thick', 'thin', 'tight', 'tiny', 'toppled', 'torn', 'unpainted',
                            'unripe', 'upright', 'verdant', 'viscous', 'weathered', 'wet', 'whipped',
                            'wide', 'wilted', 'windblown', 'winding', 'worn', 'wrinkled', 'young']
-
+default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
+                          'burnt', 'caramelized', 'chipped', 'clean', 'clear']
 py.arg('--att_names', choices=data.ATT_ID.keys(), nargs='+', default=default_att_names)
 
 py.arg('--img_dir', default='./data/mit-states-original/images')
@@ -112,7 +113,8 @@ def D_train_graph():
     # placeholders & inputs
     lr = tf.placeholder(dtype=tf.float32, shape=[])
 
-    xa, a = train_iter.get_next()
+    xa, a , b_a= train_iter.get_next()
+
     b = tf.random_shuffle(a)
     b_ = b * 2 - 1
 

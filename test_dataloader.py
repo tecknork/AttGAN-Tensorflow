@@ -38,7 +38,7 @@ py.arg('--crop_size', type=int, default=256)
 
 py.arg('--n_epochs', type=int, default=60)
 py.arg('--epoch_start_decay', type=int, default=30)
-py.arg('--batch_size', type=int, default=1)
+py.arg('--batch_size', type=int, default=10)
 py.arg('--learning_rate', type=float, default=2e-4)
 py.arg('--beta_1', type=float, default=0.5)
 
@@ -73,7 +73,7 @@ n_atts = len(args.att_names)
 
 train_dataset, len_train_dataset = data.make_celeba_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
                                                             load_size=args.load_size, crop_size=args.crop_size,
-                                                            training=True, shuffle=True, repeat=None)
+                                                            training=True, shuffle=False, repeat=None)
 print(len_train_dataset)
 print(train_dataset)
 
@@ -86,6 +86,17 @@ sess.__enter__()  # make default
 with tf.Session() as sess:
 
     xa, a ,b = train_iter.get_next()
-    print(sess.run(xa))
-    print(sess.run(a))# do something with element
-    print(sess.run(b))
+    b_ = b-a
+    one = tf.constant(1.0,dtype=tf.float64)
+    attribute_switch_indices = tf.where(tf.equal(one,b_))
+    result = tf.squeeze(attribute_switch_indices)
+
+   # # print(sess.run(xa))
+   #  print(sess.run(a))# do something with element
+   #  print(sess.run(b))
+   #  print(sess.run(b_))
+   # # print(sess.run(one))
+    print(sess.run(attribute_switch_indices))
+    print(sess.run(result))
+    # print(sess.run(tf.where(tf.equal(one,a))))
+    # print(sess.run(tf.where(tf.equal(one, b))))
