@@ -42,7 +42,7 @@ sess.__enter__()  # make default
 # ==============================================================================
 
 # data
-test_dataset, len_test_dataset = data.make_celeba_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
+test_dataset, len_test_dataset = data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
                                                           load_size=args.load_size, crop_size=args.crop_size,
                                                           training=False, drop_remainder=False, shuffle=False, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
@@ -90,25 +90,23 @@ def sample_graph():
     save_dir = './output/%s/samples_testing_%s' % (args.experiment_name, '{:g}'.format(args.test_int))
     py.mkdir(save_dir)
 
+
     def run():
         cnt = 0
         for _ in tqdm.trange(len_test_dataset):
             # data for sampling
-            xa_ipt, a_ipt = sess.run(test_next)
+            xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
+            a_ipt = np.eye(n_atts)[a_ipt]
             b_ipt_list = [a_ipt]  # the first is for reconstruction
-            for i in range(n_atts):
-                tmp = np.array(a_ipt, copy=True)
-                tmp[:, i] = 1 - tmp[:, i]   # inverse attribute
-                tmp = data.check_attribute_conflict(tmp, args.att_names[i], args.att_names)
+            for attr in b_a_ipt:
+                tmp = np.eye(n_atts)[attr]
                 b_ipt_list.append(tmp)
-
             x_opt_list = [xa_ipt]
             for i, b_ipt in enumerate(b_ipt_list):
-                b__ipt = (b_ipt * 2 - 1).astype(np.float32)  # !!!
-                if i > 0:   # i == 0 is for reconstruction
-                    b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
+                b__ipt = (b_ipt * 2 - 1).astype(np.float32)
                 x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
                 x_opt_list.append(x_opt)
+
             sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
             sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
 

@@ -3,7 +3,7 @@ import pylib as py
 import torch, torchvision
 import tensorflow as tf
 import tflib as tl
-
+from utils import pad
 
 # ATT_ID = {'5_o_Clock_Shadow': 0, 'Arched_Eyebrows': 1, 'Attractive': 2,
 #           'Bags_Under_Eyes': 3, 'Bald': 4, 'Bangs': 5, 'Big_Lips': 6,
@@ -141,10 +141,12 @@ def make_mitstates_dataset(img_dir,
                         repeat=1):
 
 
-        traindata = MitStatesDataSet()
+
+        traindata = MitStatesDataSet(training).get_data()
         img_paths = [data[0] for data in traindata]
-        labels = [data[3] for data in traindata]
-        labels_b = [data[5] for data in traindata]
+        labels = np.array([data[3] for data in traindata])
+        labels_ba =[data[5] for data in traindata]
+        labels_b = pad(labels_ba,-1)
         #img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
         #img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
         #labels = np.genfromtxt(label_path, dtype=float, usecols=range(1, 116))
@@ -199,18 +201,18 @@ def make_mitstates_dataset(img_dir,
 
 class MitStatesDataSet():
 
-    def __init__(self):
+    def __init__(self,training=True):
         self.root = "./data/mit-states-original"
-        self.img_path = "/images/"
+        self.img_path = "./data/mit-states-original/images"
         self.split = "/compositional-split"
         self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split()
         self.attr2idx = {attr: idx for idx, attr in enumerate(self.attrs)}
         self.obj2idx = {obj: idx for idx, obj in enumerate(self.objs)}
         self.pair2idx = {pair: idx for idx, pair in enumerate(self.pairs)}
-        self.phase = 'train'
+
         self.train_data, self.test_data, self.test_data_query = self.get_split_info()
 
-        self.data = self.train_data if self.phase == 'train' else self.test_data_query  # list of [img_name, attr, obj, attr_id, obj_id, feat]
+        self.data = self.train_data if training  else self.test_data  # list of [img_name, attr, obj, attr_id, obj_id, feat]
 
         self.obj_affordance_mask = []
         for _obj in self.objs:
@@ -232,12 +234,13 @@ class MitStatesDataSet():
                     [i for i in samples_grouped_by_obj[obj_id] if
                      self.train_data[i][3] != attr_id]
                 )
-        obj_attr_ids = self.noun2adjs_id_dataset(self.train_data)
-        for i,data in enumerate(self.train_data):
-            self.train_data[i].append([attr_id  for attr_id in obj_attr_ids[data[2]] if attr_id != self.train_data[i][3]])
+        obj_attr_ids = self.noun2adjs_id_dataset(self.data)
+        for i,data in enumerate(self.data):
+            self.data[i].append([attr_id  for attr_id in obj_attr_ids[data[2]] if attr_id != self.data[i][3]])
 
 
-        return self.train_data,self.test_data
+    def get_data(self):
+        return self.data
 
     def noun2adjs_id_dataset(self,data):
         noun2adjs = {}
@@ -267,7 +270,7 @@ class MitStatesDataSet():
                     # ignore instances that are not in current split
                     continue
 
-                data_i = [py.join(self.root,self.img_path,image),attr, obj, self.attr2idx[attr], self.obj2idx[obj]]
+                data_i = [py.join(self.img_path,image),attr, obj, self.attr2idx[attr], self.obj2idx[obj]]
                 # data_i = [image, attr, obj, self.attr2idx[attr], self.obj2idx[obj], self.activation_dict[image],
                 # np.eye(len(self.attrs))[self.attr2idx[attr]]]
 
@@ -283,7 +286,7 @@ class MitStatesDataSet():
                 ]
 
                 train_nouns= [
-                    u'armor'
+                    u'armor', u'bracelet', u'bush',
                 ]
                 # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
                 #               'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered',
@@ -310,7 +313,7 @@ class MitStatesDataSet():
                 if obj in train_nouns:
                     train_data.append(data_i)
 
-            print(train_data)
+            #print(train_data)
                     # negative image pool
 
                 # test_data_query = []
@@ -408,6 +411,4 @@ class MitStatesDataSet():
 
 
 
-if __name__ == '__main__':
-    x = MitStatesDataSet()
-    print(x)
+

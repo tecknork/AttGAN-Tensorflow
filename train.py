@@ -32,8 +32,8 @@ default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', '
                            'sunny', 'tall', 'thawed', 'thick', 'thin', 'tight', 'tiny', 'toppled', 'torn', 'unpainted',
                            'unripe', 'upright', 'verdant', 'viscous', 'weathered', 'wet', 'whipped',
                            'wide', 'wilted', 'windblown', 'winding', 'worn', 'wrinkled', 'young']
-default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
-                          'burnt', 'caramelized', 'chipped', 'clean', 'clear']
+# default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
+#                           'burnt', 'caramelized', 'chipped', 'clean', 'clear']
 py.arg('--att_names', choices=data.ATT_ID.keys(), nargs='+', default=default_att_names)
 
 py.arg('--img_dir', default='./data/mit-states-original/images')
@@ -85,12 +85,12 @@ sess.__enter__()  # make default
 # ==============================================================================
 
 # data
-train_dataset, len_train_dataset = data.make_celeba_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
+train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
                                                             load_size=args.load_size, crop_size=args.crop_size,
-                                                            training=True, shuffle=True, repeat=None)
-val_dataset, len_val_dataset = data.make_celeba_dataset(args.img_dir, args.val_label_path, args.att_names, args.n_samples,
+                                                            training=True, shuffle=False, repeat=None)
+val_dataset, len_val_dataset = data.make_mitstates_dataset(args.img_dir, args.val_label_path, args.att_names, args.n_samples,
                                                         load_size=args.load_size, crop_size=args.crop_size,
-                                                        training=False, shuffle=True, repeat=None)
+                                                        training=False, shuffle=False, repeat=None)
 train_iter = train_dataset.make_one_shot_iterator()
 val_iter = val_dataset.make_one_shot_iterator()
 
@@ -117,10 +117,10 @@ def D_train_graph():
 
     a = np.eye(n_atts)[a]
 
-    b_a = np.random.choice(b_a)
-    b_ = np.eye(n_atts)[b_a]
-    #b = tf.random_shuffle(a)
-    #b_ = b * 2 - 1
+    b_a = np.random.choice(b_a) #random attribute to change
+
+    b = np.eye(n_atts)[b_a]
+    b_ = b * 2 - 1
 
     # generate
     z = Genc(xa)
@@ -176,8 +176,14 @@ def G_train_graph():
     # placeholders & inputs
     lr = tf.placeholder(dtype=tf.float32, shape=[])
 
-    xa, a = train_iter.get_next()
-    b = tf.random_shuffle(a)
+    xa, a , b_a = train_iter.get_next()
+
+    a = np.eye(n_atts)[a]
+
+    b_a = np.random.choice(b_a)  # random attribute to change
+
+    b = np.eye(n_atts)[b_a]
+
     a_ = a * 2 - 1
     b_ = b * 2 - 1
 
@@ -253,24 +259,39 @@ def sample_graph():
 
     def run(epoch, iter):
         # data for sampling
-        xa_ipt, a_ipt = sess.run(val_next)
+        xa_ipt, a_ipt, b_a_ipt = sess.run(val_next)
+        a_ipt = np.eye(n_atts)[a_ipt]
         b_ipt_list = [a_ipt]  # the first is for reconstruction
-        for i in range(n_atts):
-            tmp = np.array(a_ipt, copy=True)
-            tmp[:, i] = 1 - tmp[:, i]   # inverse attribute
-            tmp = data.check_attribute_conflict(tmp, args.att_names[i], args.att_names)
+        for attr in b_a_ipt:
+            tmp = np.eye(n_atts)[attr]
             b_ipt_list.append(tmp)
 
         x_opt_list = [xa_ipt]
         for i, b_ipt in enumerate(b_ipt_list):
-            b__ipt = (b_ipt * 2 - 1).astype(np.float32)  # !!!
-            if i > 0:   # i == 0 is for reconstruction
-                b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
+            b__ipt = (b_ipt * 2 - 1).astype(np.float32)
             x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
             x_opt_list.append(x_opt)
+
         sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
         sample = np.reshape(sample, (-1, sample.shape[2] * sample.shape[3], sample.shape[4]))
         im.imwrite(sample, '%s/Epoch-%d_Iter-%d.jpg' % (save_dir, epoch, iter))
+
+        # for i in range(n_atts):
+        #     tmp = np.array(a_ipt, copy=True)
+        #     tmp[:, i] = 1 - tmp[:, i]   # inverse attribute
+        #     tmp = data.check_attribute_conflict(tmp, args.att_names[i], args.att_names)
+        #     b_ipt_list.append(tmp)
+        #
+        # x_opt_list = [xa_ipt]
+        # for i, b_ipt in enumerate(b_ipt_list):
+        #     b__ipt = (b_ipt * 2 - 1).astype(np.float32)  # !!!
+        #     if i > 0:   # i == 0 is for reconstruction
+        #         b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
+        #     x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
+        #     x_opt_list.append(x_opt)
+        # sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
+        # sample = np.reshape(sample, (-1, sample.shape[2] * sample.shape[3], sample.shape[4]))
+        # im.imwrite(sample, '%s/Epoch-%d_Iter-%d.jpg' % (save_dir, epoch, iter))
 
     return run
 
