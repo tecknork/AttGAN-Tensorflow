@@ -115,8 +115,12 @@ def D_train_graph():
 
     xa, a , b_a= train_iter.get_next()
 
-    b = tf.random_shuffle(a)
-    b_ = b * 2 - 1
+    a = np.eye(n_atts)[a]
+
+    b_a = np.random.choice(b_a)
+    b_ = np.eye(n_atts)[b_a]
+    #b = tf.random_shuffle(a)
+    #b_ = b * 2 - 1
 
     # generate
     z = Genc(xa)

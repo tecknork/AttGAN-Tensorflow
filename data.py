@@ -1,5 +1,6 @@
 import numpy as np
 import pylib as py
+import torch, torchvision
 import tensorflow as tf
 import tflib as tl
 
@@ -139,20 +140,28 @@ def make_mitstates_dataset(img_dir,
                         shuffle=True,
                         repeat=1):
 
-        img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
-        img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
-        labels = np.genfromtxt(label_path, dtype=float, usecols=range(1, 116))
-        labels = labels[:, np.array([ATT_ID[att_name] for att_name in att_names])]
-        labels_b = np.genfromtxt(label_path, dtype=float, usecols=range(116, 231))
-        labels_b = labels_b[:, np.array([ATT_ID[att_name] for att_name in att_names])]
 
-        if shuffle:
-            idx = np.random.permutation(len(img_paths))
-            img_paths = img_paths[idx]
-            labels = labels[idx]
-            labels_b = labels_b[idx]
+        traindata = MitStatesDataSet()
+        img_paths = [data[0] for data in traindata]
+        labels = [data[3] for data in traindata]
+        labels_b = [data[5] for data in traindata]
+        #img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
+        #img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
+        #labels = np.genfromtxt(label_path, dtype=float, usecols=range(1, 116))
+        #labels = labels[:, np.array([ATT_ID[att_name] for att_name in att_names])]
+        #labels_b = np.genfromtxt(label_path, dtype=float, usecols=range(116, 231))
+        #labels_b = labels_b[:, np.array([ATT_ID[att_name] for att_name in att_names])]
+
+        # no shuffle TODO in MITdatasetclass
+
+        # if shuffle:
+        #     idx = np.random.permutation(len(img_paths))
+        #     img_paths = img_paths[idx]
+        #     labels = labels[idx]
+        #     labels_b = labels_b[idx]
 
         if training:
+
             def map_fn_(img, label,label_b):
                 img = tf.image.resize(img, [load_size, load_size])
                 # img = tl.random_rotate(img, 5)
@@ -187,37 +196,218 @@ def make_mitstates_dataset(img_dir,
 
         return dataset, len_dataset
 
-def parse_split():
 
-        def parse_pairs(pair_list):
-            with open(pair_list,'r') as f:
-                pairs = f.read().strip().split('\n')
-                pairs = [t.split() for t in pairs]
-                pairs = list(map(tuple, pairs))
-            attrs, objs = zip(*pairs)
-            return attrs, objs, pairs
+class MitStatesDataSet():
 
-        root= "./data/mit-states-original/compositional-split"
-        tr_attrs, tr_objs, tr_pairs = parse_pairs('%s/train_pairs.txt'%(root))
-        ts_attrs, ts_objs, ts_pairs = parse_pairs('%s/test_pairs.txt'%(root))
+    def __init__(self):
+        self.root = "./data/mit-states-original"
+        self.img_path = "/images/"
+        self.split = "/compositional-split"
+        self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split()
+        self.attr2idx = {attr: idx for idx, attr in enumerate(self.attrs)}
+        self.obj2idx = {obj: idx for idx, obj in enumerate(self.objs)}
+        self.pair2idx = {pair: idx for idx, pair in enumerate(self.pairs)}
+        self.phase = 'train'
+        self.train_data, self.test_data, self.test_data_query = self.get_split_info()
 
-        all_attrs, all_objs =  sorted(list(set(tr_attrs+ts_attrs))), sorted(list(set(tr_objs+ts_objs)))
-        all_pairs = sorted(list(set(tr_pairs + ts_pairs)))
+        self.data = self.train_data if self.phase == 'train' else self.test_data_query  # list of [img_name, attr, obj, attr_id, obj_id, feat]
 
-        return all_attrs, all_objs, all_pairs, tr_pairs, ts_pairs
+        self.obj_affordance_mask = []
+        for _obj in self.objs:
+            candidates = [attr for (_, attr, obj, _, _) in self.train_data + self.test_data if obj == _obj]
+            affordance = set(candidates)
+            mask = [1 if x in affordance else 0 for x in self.attrs]
+            self.obj_affordance_mask.append(mask)
+
+        # negative image pool
+        samples_grouped_by_obj = [[] for _ in range(len(self.objs))]
+        for i, x in enumerate(self.train_data):
+            samples_grouped_by_obj[x[4]].append(i)
+
+        self.neg_pool = []  # [obj_id][attr_id] => list of sample id
+        for obj_id in range(len(self.objs)):
+            self.neg_pool.append([])
+            for attr_id in range(len(self.attrs)):
+                self.neg_pool[obj_id].append(
+                    [i for i in samples_grouped_by_obj[obj_id] if
+                     self.train_data[i][3] != attr_id]
+                )
+        obj_attr_ids = self.noun2adjs_id_dataset(self.train_data)
+        for i,data in enumerate(self.train_data):
+            self.train_data[i].append([attr_id  for attr_id in obj_attr_ids[data[2]] if attr_id != self.train_data[i][3]])
 
 
-def mit_states_neg_pool(train_data,attrs,objs):
+        return self.train_data,self.test_data
 
-    samples_grouped_by_obj = [[] for _ in range(len(objs))]
-    for i, x in enumerate(train_data):
-        samples_grouped_by_obj[x[4]].append(i)
+    def noun2adjs_id_dataset(self,data):
+        noun2adjs = {}
+        for i, img in enumerate(data):
+            adj = img[3]
+            noun = img[2]
+            if noun not in noun2adjs.keys():
+                noun2adjs[noun] = []
+            if adj not in noun2adjs[noun]:
+                noun2adjs[noun].append(adj)
+        # for noun, adjs in noun2adjs.items():
+        #     assert len(adjs) >= 2
+        return noun2adjs
 
-    neg_pool = []  # [obj_id][attr_id] => list of sample id
-    for obj_id in range(len(objs)):
-        neg_pool.append([])
-        for attr_id in range(len(attrs)):
-            neg_pool[obj_id].append(
-                [i for i in samples_grouped_by_obj[obj_id] if
-                 train_data[i][3] != attr_id]
-            )
+    def get_split_info(self):
+            data = torch.load(self.root + '/metadata.t7')
+            train_pair_set = set(self.train_pairs)
+            test_pair_set = set(self.test_pairs)
+            train_data, test_data = [], []
+
+            for instance in data:
+
+                image, attr, obj = instance['image'], instance['attr'], instance['obj']
+
+                if attr == 'NA' or (attr, obj) not in self.pairs:
+                    # ignore instances with unlabeled attributes
+                    # ignore instances that are not in current split
+                    continue
+
+                data_i = [py.join(self.root,self.img_path,image),attr, obj, self.attr2idx[attr], self.obj2idx[obj]]
+                # data_i = [image, attr, obj, self.attr2idx[attr], self.obj2idx[obj], self.activation_dict[image],
+                # np.eye(len(self.attrs))[self.attr2idx[attr]]]
+
+                test_nouns = [
+                    u'armor', u'bracelet', u'bush', u'camera', u'candy', u'castle',
+                    u'ceramic', u'cheese', u'clock', u'clothes', u'coffee', u'fan', u'fig',
+                    u'fish', u'foam', u'forest', u'fruit', u'furniture', u'garden', u'gate',
+                    u'glass', u'horse', u'island', u'laptop', u'lead', u'lightning',
+                    u'mirror', u'orange', u'paint', u'persimmon', u'plastic', u'plate',
+                    u'potato', u'road', u'rubber', u'sand', u'shell', u'sky', u'smoke',
+                    u'steel', u'stream', u'table', u'tea', u'tomato', u'vacuum', u'wax',
+                    u'wheel', u'window', u'wool'
+                ]
+
+                train_nouns= [
+                    u'armor'
+                ]
+                # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
+                #               'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered',
+                #               'coiled', 'cooked', 'cored', 'cracked', 'creased', 'crinkled', 'crumpled', 'crushed',
+                #               'curved', 'cut', 'damp', 'dark', 'deflated', 'dented', 'diced', 'dirty', 'draped',
+                #               'dry', 'dull', 'empty', 'engraved', 'eroded', 'fallen', 'filled', 'foggy', 'folded',
+                #               'frayed', 'fresh', 'frozen', 'full', 'grimy', 'heavy', 'huge', 'inflated', 'large',
+                #               'lightweight', 'loose', 'mashed', 'melted', 'modern', 'moldy', 'molten', 'mossy',
+                #               'muddy', 'murky', 'narrow', 'new', 'old', 'open', 'painted', 'peeled', 'pierced',
+                #               'pressed', 'pureed', 'raw', 'ripe', 'ripped', 'rough', 'ruffled', 'runny', 'rusty',
+                #               'scratched', 'sharp', 'shattered', 'shiny', 'short', 'sliced', 'small', 'smooth',
+                #               'spilled', 'splintered', 'squished', 'standing', 'steaming', 'straight', 'sunny', 'tall',
+                #               'thawed', 'thick', 'thin', 'tight', 'tiny', 'toppled', 'torn', 'unpainted', 'unripe',
+                #               'upright',
+                #               'verdant', 'viscous', 'weathered', 'wet', 'whipped', 'wide', 'wilted', 'windblown',
+                #               'winding',
+                #               'worn', 'wrinkled', 'young']
+                #
+                # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
+                #               'burnt', 'caramelized', 'chipped', 'clean', 'clear']
+
+                if obj in test_nouns:
+                    test_data.append(data_i)
+                if obj in train_nouns:
+                    train_data.append(data_i)
+
+            print(train_data)
+                    # negative image pool
+
+                # test_data_query = []
+                # for obj_neg_pool in self.neg_pool_test:
+                #     for obj_id
+
+            def noun2adjs_dataset(data):
+                noun2adjs = {}
+                for i, img in enumerate(data):
+                    adj = img[1]
+                    noun = img[2]
+                    if noun not in noun2adjs.keys():
+                        noun2adjs[noun] = []
+                    if adj not in noun2adjs[noun]:
+                        noun2adjs[noun].append(adj)
+                # for noun, adjs in noun2adjs.items():
+                #     assert len(adjs) >= 2
+                return noun2adjs
+
+
+
+            def noun2adjs_I_dataset(data):
+                noun2adjs = {}
+                noun2adjs_eye = {}
+                for i, img in enumerate(data):
+                    adj = img[1]
+                    adj_eye = np.eye(len(self.attrs))[self.attr2idx[adj]]
+                    noun = img[2]
+                    if noun not in noun2adjs.keys():
+                        noun2adjs[noun] = []
+                        noun2adjs_eye[noun] = []
+                    if adj not in noun2adjs[noun]:
+                        noun2adjs[noun].append(adj)
+                        if not len(noun2adjs_eye[noun]):
+                            noun2adjs_eye[noun] = adj_eye
+                        else:
+                            current_eye = noun2adjs_eye[noun]
+                            sum_eye = [sum(x) for x in zip(current_eye, adj_eye)]
+                            noun2adjs_eye[noun] = sum_eye
+
+                # for noun, adjs in noun2adjs.items():
+                #     assert len(adjs) >= 2
+                return noun2adjs_eye
+
+            test_data_query = []
+            noun2adjs_test_dataset = noun2adjs_dataset(test_data)
+            for idx, data in enumerate(test_data):
+                attr = data[1]
+                obj = data[2]
+                for target_adj in noun2adjs_test_dataset[obj]:
+                    if target_adj != attr:
+                        query = data + [self.attr2idx[target_adj], self.obj2idx[obj], target_adj, obj]
+                        test_data_query.append(query)
+
+
+            # f = open("train_composeAE_AttGAN.txt", "w")
+            # noun_eye = noun2adjs_I_dataset(train_data)
+            # for i in train_data:
+            #     hot_enc = " ".join(str(x) for x in i[6])
+            #     hot_b_enc = " ".join(str(x) for x in noun_eye[i[2]])
+            #     f.write('%s %s %s\n' % (i[0], hot_enc, hot_b_enc))
+            # f.close()
+
+            # f = open("test_composeAE_AttGAN.txt", "w")
+            # noun_eye = noun2adjs_I_dataset(test_data)
+            # for i in test_data:
+            #     hot_enc = " ".join(str(x) for x in i[6])
+            #     hot_b_enc = " ".join(str(x) for x in noun_eye[i[2]])
+            #     f.write('%s %s %s\n' % (i[0], hot_enc, hot_b_enc))
+            # f.close()
+
+            return train_data, test_data, test_data_query
+
+    def parse_split(self):
+
+            def parse_pairs(pair_list):
+                with open(pair_list, 'r') as f:
+                    pairs = f.read().strip().split('\n')
+                    pairs = [t.split() for t in pairs]
+                    pairs = list(map(tuple, pairs))
+                attrs, objs = zip(*pairs)
+                return attrs, objs, pairs
+
+            tr_attrs, tr_objs, tr_pairs = parse_pairs('%s/%s/train_pairs.txt' % (self.root, self.split))
+            ts_attrs, ts_objs, ts_pairs = parse_pairs('%s/%s/test_pairs.txt' % (self.root, self.split))
+
+            all_attrs, all_objs = sorted(list(set(tr_attrs + ts_attrs))), sorted(list(set(tr_objs + ts_objs)))
+            all_pairs = sorted(list(set(tr_pairs + ts_pairs)))
+
+            return all_attrs, all_objs, all_pairs, tr_pairs, ts_pairs
+
+
+    def sample_negative(self, attr_id, obj_id):
+            return np.random.choice(self.neg_pool[obj_id][attr_id])
+
+
+
+if __name__ == '__main__':
+    x = MitStatesDataSet()
+    print(x)
