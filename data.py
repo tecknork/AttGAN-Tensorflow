@@ -145,7 +145,7 @@ def make_mitstates_dataset(img_dir,
         traindata = MitStatesDataSet(training).get_data()
         img_paths = [data[0] for data in traindata]
         labels = np.array([data[3] for data in traindata])
-        labels_b = np.array([data[5] for data in traindata])
+        labels_b = np.array([np.random.choice(data[5]) for data in traindata])
         #labels_b = pad(labels_ba,-1)
         #img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
         #img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
@@ -240,15 +240,16 @@ class MitStatesDataSet():
         self.query_data = []
         obj_attr_ids = self.noun2adjs_id_dataset(self.data)
         for i,datas in enumerate(self.data):
-            for attr_id in obj_attr_ids[datas[2]]:
-                if attr_id != self.data[i][3]:
-                    query_d = datas
-                    query_d = query_d + [attr_id]
-                    self.query_data.append(query_d)
+                self.data[i].append([attr_id for attr_id in obj_attr_ids[datas[2]] if attr_id != self.data[i][3]])
+            # for attr_id in obj_attr_ids[datas[2]]:
+            #     if attr_id != self.data[i][3]:
+            #         query_d = datas
+            #         query_d = query_d + [attr_id]
+            #         self.query_data.append(query_d)
 
 
     def get_data(self):
-        return self.query_data
+        return self.data
 
     def noun2adjs_id_dataset(self,data):
         noun2adjs = {}
