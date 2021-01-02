@@ -145,7 +145,7 @@ def make_mitstates_dataset(img_dir,
         traindata = MitStatesDataSet(training).get_data()
         img_paths = [data[0] for data in traindata]
         labels = np.array([data[3] for data in traindata])
-        labels_b = np.array([np.random.choice(data[5]) for data in traindata])
+        labels_b = np.array([data[5] for data in traindata])
         #labels_b = pad(labels_ba,-1)
         #img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
         #img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
@@ -236,13 +236,19 @@ class MitStatesDataSet():
                     [i for i in samples_grouped_by_obj[obj_id] if
                      self.train_data[i][3] != attr_id]
                 )
+
+        self.query_data = []
         obj_attr_ids = self.noun2adjs_id_dataset(self.data)
-        for i,data in enumerate(self.data):
-            self.data[i].append([attr_id  for attr_id in obj_attr_ids[data[2]] if attr_id != self.data[i][3]])
+        for i,datas in enumerate(self.data):
+            for attr_id in obj_attr_ids[datas[2]]:
+                if attr_id != self.data[i][3]:
+                    query_d = datas
+                    query_d = query_d + [attr_id]
+                    self.query_data.append(query_d)
 
 
     def get_data(self):
-        return self.data
+        return self.query_data
 
     def noun2adjs_id_dataset(self,data):
         noun2adjs = {}
@@ -287,9 +293,9 @@ class MitStatesDataSet():
                     u'wheel', u'window', u'wool'
                 ]
 
-                train_nouns= [
-                    u'armor', u'bracelet', u'bush',
-                ]
+                # train_nouns= [
+                #     u'armor', u'bracelet', u'bush',
+                # ]
                 # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
                 #               'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered',
                 #               'coiled', 'cooked', 'cored', 'cracked', 'creased', 'crinkled', 'crumpled', 'crushed',
@@ -312,7 +318,7 @@ class MitStatesDataSet():
 
                 if obj in test_nouns:
                     test_data.append(data_i)
-                if obj in train_nouns:
+                else:
                     train_data.append(data_i)
 
             #print(train_data)
