@@ -145,8 +145,8 @@ def make_mitstates_dataset(img_dir,
         traindata = MitStatesDataSet(training).get_data()
         img_paths = [data[0] for data in traindata]
         labels = np.array([data[3] for data in traindata])
-        labels_ba =[data[5] for data in traindata]
-        labels_b = pad(labels_ba,-1)
+        labels_b = np.array([np.random.choice(data[5]) for data in traindata])
+        #labels_b = pad(labels_ba,-1)
         #img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
         #img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
         #labels = np.genfromtxt(label_path, dtype=float, usecols=range(1, 116))
@@ -173,6 +173,7 @@ def make_mitstates_dataset(img_dir,
                 # img = tl.random_grayscale(img, p=0.3)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
                 #label = (label + 1) // 2
+
                 return img, label,label_b
         else:
             def map_fn_(img, label,label_b):
@@ -180,6 +181,7 @@ def make_mitstates_dataset(img_dir,
                 img = tl.center_crop(img, size=crop_size)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
                 #label = (label + 1) // 2
+
                 return img, label,label_b
 
         dataset = tl.disk_image_batch_dataset(img_paths,

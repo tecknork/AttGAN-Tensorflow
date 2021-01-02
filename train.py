@@ -7,7 +7,6 @@ import tensorflow as tf
 import tflib as tl
 import tfprob
 import tqdm
-
 import data
 import module
 
@@ -60,7 +59,7 @@ py.arg('--g_attribute_loss_weight', type=float, default=10.0)
 py.arg('--g_reconstruction_loss_weight', type=float, default=100.0)
 py.arg('--weight_decay', type=float, default=0.0)
 
-py.arg('--n_samples', type=int, default=12)
+py.arg('--n_samples', type=int, default=2)
 py.arg('--test_int', type=float, default=2.0)
 
 py.arg('--experiment_name', default='default')
@@ -115,11 +114,11 @@ def D_train_graph():
 
     xa, a , b_a= train_iter.get_next()
 
-    a = np.eye(n_atts)[a]
+    a = tf.one_hot(a,depth=n_atts)
 
-    b_a = np.random.choice(b_a) #random attribute to change
+    #b_a = np.random.choice(b_a,-1) #random attribute to change
+    b = tf.one_hot(b_a, depth=n_atts)
 
-    b = np.eye(n_atts)[b_a]
     b_ = b * 2 - 1
 
     # generate
@@ -178,11 +177,13 @@ def G_train_graph():
 
     xa, a , b_a = train_iter.get_next()
 
-    a = np.eye(n_atts)[a]
 
-    b_a = np.random.choice(b_a)  # random attribute to change
+    a = tf.one_hot(a, depth=n_atts)
 
-    b = np.eye(n_atts)[b_a]
+    #b_a = np.random.choice(b_a)  # random attribute to change
+    b = tf.one_hot(b_a, depth=n_atts)
+
+
 
     a_ = a * 2 - 1
     b_ = b * 2 - 1
@@ -260,16 +261,19 @@ def sample_graph():
     def run(epoch, iter):
         # data for sampling
         xa_ipt, a_ipt, b_a_ipt = sess.run(val_next)
-        a_ipt = np.eye(n_atts)[a_ipt]
-        b_ipt_list = [a_ipt]  # the first is for reconstruction
-        for attr in b_a_ipt:
-            tmp = np.eye(n_atts)[attr]
-            b_ipt_list.append(tmp)
+        a_ipt = tf.one_hot(a_ipt, depth=n_atts)
+        b_a_ipt = tf.one_hot(b_a_ipt, depth=n_atts)
+
+        b_ipt_list = [a_ipt,b_a_ipt]  # the first is for reconstruction
+        # for attr in b_a_ipt:
+        #     if attr!= -1:
+        #         tmp =tf.one_hot(attr,depth=n_atts)
+        #         b_ipt_list.append(tmp)
 
         x_opt_list = [xa_ipt]
         for i, b_ipt in enumerate(b_ipt_list):
-            b__ipt = (b_ipt * 2 - 1).astype(np.float32)
-            x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
+            b__ipt = b_ipt * 2 - 1
+            x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
             x_opt_list.append(x_opt)
 
         sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
@@ -279,7 +283,8 @@ def sample_graph():
         # for i in range(n_atts):
         #     tmp = np.array(a_ipt, copy=True)
         #     tmp[:, i] = 1 - tmp[:, i]   # inverse attribute
-        #     tmp = data.check_attribute_conflict(tmp, args.att_names[i], args.att_names)
+        #     tmp = data.check_attribute_conflict(tmp, args.att_names[i],
+        #     args.att_names)
         #     b_ipt_list.append(tmp)
         #
         # x_opt_list = [xa_ipt]

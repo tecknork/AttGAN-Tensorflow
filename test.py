@@ -44,7 +44,7 @@ sess.__enter__()  # make default
 # data
 test_dataset, len_test_dataset = data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
                                                           load_size=args.load_size, crop_size=args.crop_size,
-                                                          training=False, drop_remainder=False, shuffle=False, repeat=None)
+                                                          training=True, drop_remainder=False, shuffle=False, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
 
 
@@ -96,15 +96,18 @@ def sample_graph():
         for _ in tqdm.trange(len_test_dataset):
             # data for sampling
             xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
-            a_ipt = np.eye(n_atts)[a_ipt]
-            b_ipt_list = [a_ipt]  # the first is for reconstruction
-            for attr in b_a_ipt:
-                tmp = np.eye(n_atts)[attr]
-                b_ipt_list.append(tmp)
+
+            a_ipt = tf.one_hot(a_ipt, depth=n_atts)
+            b_a_ipt = tf.one_hot(b_a_ipt, depth=n_atts)
+            b_ipt_list = [a_ipt,b_a_ipt]  # the first is for reconstruction
+            # for attr in b_a_ipt:
+            #     if attr != -1:
+            #         tmp = tf.one_hot(attr, depth=n_atts)
+            #         b_ipt_list.append(tmp)
             x_opt_list = [xa_ipt]
             for i, b_ipt in enumerate(b_ipt_list):
-                b__ipt = (b_ipt * 2 - 1).astype(np.float32)
-                x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
+                b__ipt = b_ipt * 2 - 1
+                x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
                 x_opt_list.append(x_opt)
 
             sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))

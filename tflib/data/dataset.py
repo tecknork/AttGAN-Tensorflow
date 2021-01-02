@@ -1,7 +1,7 @@
 import multiprocessing
 
 import tensorflow as tf
-
+import numpy as np
 
 def batch_dataset(dataset,
                   batch_size,
@@ -102,6 +102,7 @@ def disk_image_batch_dataset(img_paths,
     if labels is None:
         memory_data = img_paths
     else:
+
         memory_data = (img_paths, labels,labels_b)
 
     def parse_fn(path, *label):

@@ -38,7 +38,7 @@ py.arg('--crop_size', type=int, default=256)
 
 py.arg('--n_epochs', type=int, default=60)
 py.arg('--epoch_start_decay', type=int, default=30)
-py.arg('--batch_size', type=int, default=1)
+py.arg('--batch_size', type=int, default=100)
 py.arg('--learning_rate', type=float, default=2e-4)
 py.arg('--beta_1', type=float, default=0.5)
 
@@ -82,16 +82,18 @@ sess = tl.session()
 sess.__enter__()  # make default
 
 # get the next item
-while True:
-    with tf.Session() as sess:
+#while True:
+with tf.Session() as sess:
 
-        xa, a ,b = train_iter.get_next()
+        xa, a_x ,b = train_iter.get_next()
+        a = tf.one_hot(a_x, depth=n_atts)
+
         # b_ = b-a
         # one = tf.constant(1.0,dtype=tf.float64)
         # attribute_switch_indices = tf.where(tf.equal(one,b_))
         # result = tf.squeeze(attribute_switch_indices)
 
-        print(sess.run([xa,a,b]))
+        print(sess.run([a,b]))
        #  print(sess.run(a))# do something with element
        #  print(sess.run(b))
        #  print(sess.run(b_))
