@@ -38,7 +38,7 @@ py.arg('--crop_size', type=int, default=256)
 
 py.arg('--n_epochs', type=int, default=60)
 py.arg('--epoch_start_decay', type=int, default=30)
-py.arg('--batch_size', type=int, default=100)
+py.arg('--batch_size', type=int, default=2)
 py.arg('--learning_rate', type=float, default=2e-4)
 py.arg('--beta_1', type=float, default=0.5)
 
@@ -71,29 +71,47 @@ py.args_to_yaml(py.join(output_dir, 'settings.yml'), args)
 n_atts = len(args.att_names)
 
 
-train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
-                                                            load_size=args.load_size, crop_size=args.crop_size,
-                                                            training=True, shuffle=False, repeat=None)
-print(len_train_dataset)
-print(train_dataset)
-
-train_iter = train_dataset.make_one_shot_iterator()
 sess = tl.session()
 sess.__enter__()  # make default
 
 # get the next item
 #while True:
 with tf.Session() as sess:
+        train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
+                                                                       args.batch_size,
+                                                                       load_size=args.load_size, crop_size=args.crop_size,
+                                                                       training=True, shuffle=False, repeat=None)
+        print(len_train_dataset)
+        print(train_dataset)
 
+        train_iter = train_dataset.make_one_shot_iterator()
         xa, a_x ,b = train_iter.get_next()
         a = tf.one_hot(a_x, depth=n_atts)
+        print(xa)
+        print(a_x)
+        print(b)
+        #
+        # Tensor("IteratorGetNext:0", shape=(2, 256, 256, 3), dtype=float32)
+        # Tensor("IteratorGetNext:1", shape=(2,), dtype=int64)
+        # Tensor("IteratorGetNext:2", shape=(2,), dtype=int64)
+        # b_ = b-a
+        # one = tf.constant(1.0,dtype=tf.float64)
+        # attribute_switch_indices = tf.where(tf.equal(one,b_))
+        # result = tf.squeeze(attribute_switch_indices)
+
+        # print(sess.run([a,b]))
+        #
+        # train_iter = train_dataset.make_one_shot_iterator()
+        # xa, a_x, b = train_iter.get_next()
+        # a = tf.one_hot(a_x, depth=n_atts)
 
         # b_ = b-a
         # one = tf.constant(1.0,dtype=tf.float64)
         # attribute_switch_indices = tf.where(tf.equal(one,b_))
         # result = tf.squeeze(attribute_switch_indices)
 
-        print(sess.run([a,b]))
+        print(sess.run([a, b]))
+
        #  print(sess.run(a))# do something with element
        #  print(sess.run(b))
        #  print(sess.run(b_))

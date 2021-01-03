@@ -84,13 +84,13 @@ sess.__enter__()  # make default
 # ==============================================================================
 
 # data
-train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
-                                                            load_size=args.load_size, crop_size=args.crop_size,
-                                                            training=True, shuffle=False, repeat=None)
+# train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
+#                                                             load_size=args.load_size, crop_size=args.crop_size,
+#                                                             training=True, shuffle=False, repeat=None)
 val_dataset, len_val_dataset = data.make_mitstates_dataset(args.img_dir, args.val_label_path, args.att_names, args.n_samples,
                                                         load_size=args.load_size, crop_size=args.crop_size,
                                                         training=False, shuffle=False, repeat=None)
-train_iter = train_dataset.make_one_shot_iterator()
+# train_iter = train_dataset.make_one_shot_iterator()
 val_iter = val_dataset.make_one_shot_iterator()
 
 # model
@@ -112,9 +112,13 @@ def D_train_graph():
     # placeholders & inputs
     lr = tf.placeholder(dtype=tf.float32, shape=[])
 
-    xa, a , b_a= train_iter.get_next()
+    xa = tf.placeholder(dtype=tf.float32, shape=[None,args.crop_size,args.crop_size,3])
+    a_a = tf.placeholder(dtype=tf.int64,shape=[None])
+    b_a = tf.placeholder(dtype=tf.int64,shape=[None])
 
-    a = tf.one_hot(a,depth=n_atts)
+   # xa, a , b_a= train_iter.get_next()
+
+    a = tf.one_hot(a_a,depth=n_atts)
 
     #b_a = np.random.choice(b_a,-1) #random attribute to change
     b = tf.one_hot(b_a, depth=n_atts)
@@ -162,7 +166,7 @@ def D_train_graph():
     # ======================================
 
     def run(**pl_ipts):
-        sess.run([step, summary], feed_dict={lr: pl_ipts['lr']})
+        sess.run([step, summary], feed_dict={lr: pl_ipts['lr'],xa:pl_ipts['xa'],a_a:pl_ipts['a_a'],b_a:pl_ipts['b_a']})
 
     return run
 
@@ -175,10 +179,14 @@ def G_train_graph():
     # placeholders & inputs
     lr = tf.placeholder(dtype=tf.float32, shape=[])
 
-    xa, a , b_a = train_iter.get_next()
+    xa = tf.placeholder(dtype=tf.float32, shape=[None, args.crop_size, args.crop_size, 3])
+    a_a = tf.placeholder(dtype=tf.int64, shape=[None])
+    b_a = tf.placeholder(dtype=tf.int64, shape=[None])
+
+   # xa, a , b_a = train_iter.get_next()
 
 
-    a = tf.one_hot(a, depth=n_atts)
+    a = tf.one_hot(a_a, depth=n_atts)
 
     #b_a = np.random.choice(b_a)  # random attribute to change
     b = tf.one_hot(b_a, depth=n_atts)
@@ -233,7 +241,7 @@ def G_train_graph():
     # ======================================
 
     def run(**pl_ipts):
-        sess.run([step, summary], feed_dict={lr: pl_ipts['lr']})
+        sess.run([step, summary], feed_dict={lr: pl_ipts['lr'],xa:pl_ipts['xa'],a_a:pl_ipts['a_a'],b_a:pl_ipts['b_a']})
 
     return run
 
@@ -333,6 +341,13 @@ try:
         # learning rate
         lr_ipt = lr_fn(ep)
 
+        train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path,
+                                                                      args.att_names, args.batch_size,
+                                                                      load_size=args.load_size,
+                                                                      crop_size=args.crop_size,
+                                                                      training=True, shuffle=False, repeat=None)
+        train_iter = train_dataset.make_one_shot_iterator()
+
         for it in tqdm.trange(len_train_dataset, desc='Inner Epoch Loop'):
             if it + ep * len_train_dataset < sess.run(step_cnt):
                 continue
@@ -340,10 +355,12 @@ try:
 
             # train D
             if step % (args.n_d + 1) != 0:
-                D_train_step(lr=lr_ipt)
+                xa, a, b_a = train_iter.get_next()
+                D_train_step(lr=lr_ipt,xa=xa.eval(),a_a=a.eval(),b_a=b_a.eval())
             # train G
             else:
-                G_train_step(lr=lr_ipt)
+                xa, a, b_a = train_iter.get_next()
+                G_train_step(lr=lr_ipt,xa=xa.eval(),a_a=a.eval(),b_a=b_a.eval())
 
             # save
             if step % (1000 * (args.n_d + 1)) == 0:
