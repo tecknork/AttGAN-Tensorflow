@@ -46,7 +46,7 @@ sess.__enter__()  # make default
 # data
 test_dataset, len_test_dataset= data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
                                                           load_size=args.load_size, crop_size=args.crop_size,
-                                                          training=True, drop_remainder=False, shuffle=False, repeat=None)
+                                                          training=True, drop_remainder=False, shuffle=True, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
 
 
