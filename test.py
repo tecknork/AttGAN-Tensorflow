@@ -118,7 +118,7 @@ def sample_graph():
 
             for i,s in enumerate(sample):
                 cnt += 1
-                im.imwrite(s, '%s/%d-posAttr-%s-NegAttr-%s-Obj-%s.jpg' % (save_dir, cnt,attr,neg_attr,obj))
+                im.imwrite(s, '%s/%d-posAttr-%s-NegAttr-%s-Obj-%s.jpg' % (save_dir, cnt,attr[i],neg_attr[i],obj[i]))
 
     return run
 
