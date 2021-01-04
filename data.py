@@ -337,9 +337,9 @@ class MitStatesDataSet():
                     u'wheel', u'window', u'wool'
                 ]
 
-                train_nouns= [
-                    u'armor',
-                ]
+                # train_nouns= [
+                #     u'armor',
+                # ]
 
 
                 # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
@@ -364,7 +364,7 @@ class MitStatesDataSet():
 
                 if obj in test_nouns:
                     test_data.append(data_i)
-                if obj in train_nouns:
+                else:
                     train_data.append(data_i)
 
             #print(train_data)

@@ -356,7 +356,7 @@ try:
                 checkpoint.save(step)
 
             # sample
-            if step % (50 * (args.n_d + 1)) == 0:
+            if step % (100 * (args.n_d + 1)) == 0:
                 sample(ep, it)
 except Exception:
     traceback.print_exc()
