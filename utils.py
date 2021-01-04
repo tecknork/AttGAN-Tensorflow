@@ -23,6 +23,32 @@ def tile_concat(a_list, b_list=[]):
     return tf.concat(a_list + b_list, axis=-1)
 
 
+def repeat_tensor(tensor, axis, multiple):
+    """e.g. (1,2,3)x3 = (1,1,1,2,2,2,3,3,3)"""
+
+    result_shape = tensor.shape.as_list()
+    for i, v in enumerate(result_shape):
+        if v is None:
+            result_shape[i] = tf.shape(tensor)[i]
+    result_shape[axis] *= multiple
+
+    tensor = tf.expand_dims(tensor, axis + 1)
+    mul = [1] * len(tensor.shape)
+    mul[axis + 1] = multiple
+    tensor = tf.tile(tensor, mul)
+    tensor = tf.reshape(tensor, result_shape)
+
+    return tensor
+
+
+def tile_tensor(tensor, axis, multiple):
+    """e.g. (1,2,3)x3 = (1,2,3,1,2,3,1,2,3)"""
+    mul = [1] * len(tensor.shape)
+    mul[axis] = multiple
+
+    return tf.tile(tensor, mul)
+
+
 # ==============================================================================
 # =                                   others                                   =
 # ==============================================================================

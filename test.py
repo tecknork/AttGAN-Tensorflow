@@ -6,7 +6,7 @@ import pylib as py
 import tensorflow as tf
 import tflib as tl
 import tqdm
-
+import utils
 import data
 import module
 
@@ -46,7 +46,7 @@ sess.__enter__()  # make default
 # data
 test_dataset, len_test_dataset,test_img_database,len_test_img_database = data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
                                                           load_size=args.load_size, crop_size=args.crop_size,
-                                                          training=False, drop_remainder=False, shuffle=False, repeat=None)
+                                                          training=False, drop_remainder=True, shuffle=False, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
 test_img_iter = test_img_database.make_one_shot_iterator()
 
@@ -113,8 +113,9 @@ def sample_graph():
             z = sess.run(z_all,feed_dict={x_all:x_d})
             z_alls.append(z)
 
-        print(z_alls)
-        x_r_list= []
+        title_z_images = utils.tile_tensor(z_alls, 0, args.n_samples)
+        indices_per_sample = []
+       # x_r_list= []
         for _ in tqdm.trange(len_test_dataset):
             # data for sampling
            # xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
@@ -134,13 +135,26 @@ def sample_graph():
             #     x_opt_list.append(x_opt)
 
             b__ipt = b_a_ipt * 2 - 1
-            x_r = sess.run(x_r_all, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
-            x_r_list.append(x_r)
+            #x_r = sess.run(x_r_all, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
+            repeat_x_r = utils.repeat_tensor(x_r_all,0,len_test_img_database)
+            dis = tf.negative(tf.norm(repeat_x_r - title_z_images, axis=-1))
+            # print(dis.get_shape())
+            # dis_per_image =  tf.map_fn(fn=lambda k: dis[...,k],
+            #                 elems=tf.range(batchsize),
+            #                 dtype=tf.float32)
+            dis_per_image = tf.split(dis, args.n_samples)
+            values, indices = tf.nn.top_k(dis_per_image, k=10, sorted=False)
+
+
+            indices_per_sample.append(sess.run(indices,feed_dict={xa: xa_ipt, b_: b__ipt.eval()}))
+
+        print(indices_per_sample)
+          #  x_r_list.append(x_r)
 
 
 
 
-        print(x_r_list)
+       # print(x_r_list)
             # sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
             # sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
             #
