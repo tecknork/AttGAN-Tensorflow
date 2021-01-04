@@ -486,5 +486,5 @@ class MitStatesDataSet():
               return img,attr,obj
 
           dataset = dataset.map(map_fn_, num_parallel_calls=n_map_threads)
-          #dataset = dataset.batch(2)
-          return dataset ,len(images_path)
+          dataset = dataset.batch(2)
+          return dataset ,len(images_path)//2

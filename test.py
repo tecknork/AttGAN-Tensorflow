@@ -108,9 +108,9 @@ def sample_graph():
 
         z_all = []
         for _ in tqdm.trange(len_test_img_database):
-            x , attr, obj = sess.run(test_img_next)
+            x_d , attr, obj = sess.run(test_img_next)
 
-            z = sess.run(z_all,feed_dict={x_all:x})
+            z = sess.run(z_all,feed_dict={x_all:x_d})
             z_all.append(z)
 
         print(z_all)
