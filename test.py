@@ -44,11 +44,10 @@ sess.__enter__()  # make default
 # ==============================================================================
 
 # data
-test_dataset, len_test_dataset,test_img_database,len_test_img_database = data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
+test_dataset, len_test_dataset,test_img_stack,len_test_img_database = data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
                                                           load_size=args.load_size, crop_size=args.crop_size,
                                                           training=False, drop_remainder=True, shuffle=False, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
-test_img_iter = test_img_database.make_one_shot_iterator()
 
 
 # ==============================================================================
@@ -61,7 +60,7 @@ def sample_graph():
     # ======================================
 
     test_next = test_iter.get_next()
-    test_img_next = test_img_iter.get_next()
+    # test_img_next = test_img_iter.get_next()
 
     if not os.path.exists(py.join(output_dir, 'generator.pb')):
         # model
@@ -75,10 +74,9 @@ def sample_graph():
         x = Gdec(Genc(xa, training=False), b_, training=False)
 
         # all image embeddings
-        x_all = tf.placeholder(tf.float32, shape=[None, args.crop_size, args.crop_size, 3])
 
-        z_all = Genc(x_all,training=False)
-        print(z_all)
+        z_all = Genc(test_img_stack,training=False)
+        title_z_images = utils.tile_tensor(z_all, 0, args.n_samples)
         x_r_all = Genc(x,training=False)
 
     else:
@@ -106,15 +104,15 @@ def sample_graph():
     def run():
         cnt = 0
 
-        z_alls = []
-        for _ in tqdm.trange(len_test_img_database):
-            x_d , attr, obj = sess.run(test_img_next)
+        # z_alls = []
+        # for _ in tqdm.trange(len_test_img_database):
+        #     x_d , attr, obj = sess.run(test_img_next)
+        #
+        #     #z = sess.run(z_all,feed_dict={x_all:x_d})
+        #     z_alls.append(z_all)
+        #
+        # z_alls_tensor = tf.stack(z_alls)
 
-            z = sess.run(z_all,feed_dict={x_all:x_d})
-            z_alls.append(z)
-
-        z_alls_tensor = tf.stack(z_alls)
-        title_z_images = utils.tile_tensor(z_alls_tensor, 0, args.n_samples)
         indices_per_sample = []
        # x_r_list= []
         for _ in tqdm.trange(len_test_dataset):
