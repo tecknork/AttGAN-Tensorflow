@@ -78,7 +78,7 @@ def sample_graph():
         x_all = tf.placeholder(tf.float32, shape=[None, args.crop_size, args.crop_size, 3])
 
         z_all = Genc(x_all,training=False)
-
+        print(z_all)
         x_r_all = Genc(x,training=False)
 
     else:
