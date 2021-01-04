@@ -145,7 +145,7 @@ def make_mitstates_dataset(img_dir,
         mit_states = MitStatesDataSet(training)
         traindata = mit_states.get_data()
 
-        img_deck,len_img_deck = mit_states.get_images(training) #images_dataset
+        #img_deck,len_img_deck = mit_states.get_images(training) #images_dataset
         img_paths = np.array([data[0] for data in traindata])
         labels = np.array([data[3] for data in traindata]) # attr
         labels_b = np.array([data[5] for data in traindata]) # neg_attr
@@ -226,7 +226,7 @@ def make_mitstates_dataset(img_dir,
         else:
             len_dataset = int(np.ceil(len(img_paths) / batch_size))
 
-        return dataset, len_dataset ,img_deck,len_img_deck
+        return dataset, len_dataset #,img_deck,len_img_deck
 
 
 class MitStatesDataSet():

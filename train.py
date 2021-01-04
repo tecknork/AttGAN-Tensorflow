@@ -43,7 +43,7 @@ py.arg('--crop_size', type=int, default=128)
 
 py.arg('--n_epochs', type=int, default=60)
 py.arg('--epoch_start_decay', type=int, default=30)
-py.arg('--batch_size', type=int, default=10)
+py.arg('--batch_size', type=int, default=32)
 py.arg('--learning_rate', type=float, default=2e-4)
 py.arg('--beta_1', type=float, default=0.5)
 
@@ -84,10 +84,10 @@ sess.__enter__()  # make default
 # ==============================================================================
 
 # data
-train_dataset, len_train_dataset,_ ,_= data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
+train_dataset, len_train_dataset= data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
                                                             load_size=args.load_size, crop_size=args.crop_size,
                                                             training=True, shuffle=False, repeat=None)
-val_dataset, len_val_dataset,_,_ = data.make_mitstates_dataset(args.img_dir, args.val_label_path, args.att_names, args.n_samples,
+val_dataset, len_val_dataset = data.make_mitstates_dataset(args.img_dir, args.val_label_path, args.att_names, args.n_samples,
                                                         load_size=args.load_size, crop_size=args.crop_size,
                                                         training=False, shuffle=False, repeat=None)
 train_iter = train_dataset.make_one_shot_iterator()
