@@ -342,7 +342,7 @@ class MitStatesDataSet():
                 ]
 
                 test_nouns = [
-                    u'armor'
+                    # u'armor'
                 ]
                 # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
                 #               'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered',
