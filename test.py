@@ -48,7 +48,7 @@ test_dataset, len_test_dataset,test_img_stack,len_test_img_database = data.make_
                                                           load_size=args.load_size, crop_size=args.crop_size,
                                                           training=False, drop_remainder=True, shuffle=False, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
-
+print(test_img_stack)
 
 # ==============================================================================
 # =                                   graph                                    =
