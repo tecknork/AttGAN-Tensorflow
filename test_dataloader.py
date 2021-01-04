@@ -7,7 +7,7 @@ import tensorflow as tf
 import tflib as tl
 import tfprob
 import tqdm
-
+import utils
 import data
 import module
 
@@ -105,6 +105,8 @@ with tf.Session() as sess:
 
 
         print(img_deck)
+        tile_deck = utils.tile_tensor(img_deck, 0, args.n_samples)
+        print(tile_deck)
         #
         # test_img_deck = test_img_deck.batch(2)
         # test_img_iter = test_img_deck.make_one_shot_iterator()

@@ -75,9 +75,9 @@ def sample_graph():
 
         # all image embeddings
 
-        z_all = Genc(test_img_stack,training=False)
-        title_z_images = utils.tile_tensor(z_all, 0, args.n_samples)
-        x_r_all = Genc(x,training=False)
+       # z_all = Genc(test_img_stack,training=False)
+        title_images = utils.tile_tensor(test_img_stack, 0, args.n_samples)
+        #x_r_all = Genc(x,training=False)
 
     else:
         # load freezed model
@@ -135,8 +135,8 @@ def sample_graph():
 
             b__ipt = b_a_ipt * 2 - 1
             #x_r = sess.run(x_r_all, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
-            repeat_x_r = utils.repeat_tensor(x_r_all,0,len_test_img_database)
-            dis = tf.negative(tf.norm(repeat_x_r - title_z_images, axis=-1))
+            repeat_x = utils.repeat_tensor(x,0,len_test_img_database)
+            dis = tf.negative(tf.norm(repeat_x - title_images, axis=-1))
             # print(dis.get_shape())
             # dis_per_image =  tf.map_fn(fn=lambda k: dis[...,k],
             #                 elems=tf.range(batchsize),
