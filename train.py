@@ -269,19 +269,21 @@ def sample_graph():
     def run(epoch, iter):
         # data for sampling
         #xa, a_x, b, attr, obj, obj_id, neg_attr = val_iter.get_next()
-        xa_ipt, a, b,attr, obj, o,neg_attr,_ = sess.run(val_next)
-        a_ipt = tf.one_hot(a, depth=n_atts)
-        b_a_ipt = tf.one_hot(b, depth=n_atts)
+        xa_ipt, a, b,attr, obj, o,neg_attr,xb_ref = sess.run(val_next)
 
+        a_ipt = np.eye(n_atts)[a]  # tf.one_hot(a_ipt, depth=n_atts)
+
+        b_a_ipt = np.eye(n_atts)[b]  # tf.one_hot(b_a_ipt, depth=n_atts)
         b_ipt_list = [a_ipt,b_a_ipt]  # the first is for reconstruction
         # for attr in b_a_ipt:
         #     if attr!= -1:
         #         tmp =tf.one_hot(attr,depth=n_atts)
         #         b_ipt_list.append(tmp)
 
-        x_opt_list = [xa_ipt]
+        x_opt_list = [xa_ipt,xb_ref]
         for i, b_ipt in enumerate(b_ipt_list):
-            b__ipt = b_ipt * 2 - 1
+            tmp = np.array(b_ipt, copy=True)
+            b__ipt = (tmp * 2 - 1).astype(np.float32)
             x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
             x_opt_list.append(x_opt)
 
