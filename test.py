@@ -106,14 +106,14 @@ def sample_graph():
     def run():
         cnt = 0
 
-        z_all = []
+        z_alls = []
         for _ in tqdm.trange(len_test_img_database):
             x_d , attr, obj = sess.run(test_img_next)
 
             z = sess.run(z_all,feed_dict={x_all:x_d})
-            z_all.append(z)
+            z_alls.append(z)
 
-        print(z_all)
+        print(z_alls)
         x_r_list= []
         for _ in tqdm.trange(len_test_dataset):
             # data for sampling

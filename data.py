@@ -338,7 +338,7 @@ class MitStatesDataSet():
                 ]
 
                 train_nouns= [
-                    u'armor', u'bracelet', u'bush',
+                    u'armor',
                 ]
 
                 test_nouns = [
