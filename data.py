@@ -270,7 +270,8 @@ class MitStatesDataSet():
         for i,datas in enumerate(self.data):
             if training:
                 size = len(obj_attr_ids[datas[2]])
-                for attr_id in np.random.choice(obj_attr_ids[datas[2]], np.random.choice(size), replace=False):
+                #for attr_id in np.random.choice(obj_attr_ids[datas[2]], np.random.choice(size), replace=False):
+                for attr_id in obj_attr_ids[datas[2]]:
                     if attr_id != self.data[i][3]:
                         query_d = datas
                         query_d = query_d + [attr_id] + [self.attrs[attr_id]] + [self.sample_negative(attr_id,self.data[i][4])]

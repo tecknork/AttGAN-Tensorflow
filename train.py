@@ -86,10 +86,10 @@ sess.__enter__()  # make default
 # data
 train_dataset, len_train_dataset= data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
                                                             load_size=args.load_size, crop_size=args.crop_size,
-                                                            training=True, shuffle=False, repeat=None)
+                                                            training=True, shuffle=True, repeat=None)
 val_dataset, len_val_dataset = data.make_mitstates_dataset(args.img_dir, args.val_label_path, args.att_names, args.n_samples,
                                                         load_size=args.load_size, crop_size=args.crop_size,
-                                                        training=False, shuffle=False, repeat=None)
+                                                        training=False, shuffle=True, repeat=None)
 train_iter = train_dataset.make_one_shot_iterator()
 val_iter = val_dataset.make_one_shot_iterator()
 
