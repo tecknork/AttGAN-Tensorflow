@@ -61,7 +61,7 @@ def sample_graph():
     # ======================================
 
     test_next = test_iter.get_next()
-    test_img_next = test_img_iter.next()
+    test_img_next = test_img_iter.get_next()
 
     if not os.path.exists(py.join(output_dir, 'generator.pb')):
         # model
