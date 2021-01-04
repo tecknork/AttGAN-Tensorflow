@@ -20,7 +20,7 @@ py.arg('--test_label_path', default='./data/img_celeba/test_label.txt')
 py.arg('--test_int', type=float, default=2)
 py.arg('--load_size', type=int, default=256)
 py.arg('--crop_size', type=int, default=256)
-
+py.arg('--n_samples', type=int, default=32)
 
 py.arg('--experiment_name', default='default')
 args_ = py.args()
