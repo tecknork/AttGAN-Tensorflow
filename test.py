@@ -113,7 +113,7 @@ def sample_graph():
             z = sess.run(z_all,feed_dict={x_all:x_d})
             z_alls.append(z)
 
-        z_alls_tensor = tf.constant(z_alls)
+        z_alls_tensor = tf.stack(z_alls)
         title_z_images = utils.tile_tensor(z_alls_tensor, 0, args.n_samples)
         indices_per_sample = []
        # x_r_list= []
