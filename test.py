@@ -98,7 +98,7 @@ def sample_graph():
         for _ in tqdm.trange(len_test_dataset):
             # data for sampling
            # xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
-            xa_ipt, a_ipt, b_a_ipt, attr, obj, o, neg_attr = sess.run(test_next)
+            xa_ipt, a_ipt, b_a_ipt, attr, obj, o, neg_attr,_ = sess.run(test_next)
 
             a_ipt = tf.one_hot(a_ipt, depth=n_atts)
             b_a_ipt = tf.one_hot(b_a_ipt, depth=n_atts)
