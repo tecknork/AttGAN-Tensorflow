@@ -110,7 +110,7 @@ def sample_graph():
             x_opt_list = [xa_ipt]
             for i, b_ipt in enumerate(b_ipt_list):
                 b__ipt = b_ipt * 2 - 1
-                x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
+                x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
                 x_opt_list.append(x_opt)
 
             sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
