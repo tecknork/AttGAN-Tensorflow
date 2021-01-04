@@ -82,6 +82,11 @@ def disk_image_batch_dataset(img_paths,
                              batch_size,
                              labels=None,
                              labels_b=None,
+                             attr=None,
+                             neg_attr=None,
+                             obj=None,
+                             obj_id=None,
+                             neg_img=None,
                              drop_remainder=True,
                              n_prefetch_batch=1,
                              filter_fn=None,
@@ -102,14 +107,26 @@ def disk_image_batch_dataset(img_paths,
     if labels is None:
         memory_data = img_paths
     else:
+        if neg_img is None:
+            memory_data = (img_paths, labels, labels_b, attr, obj, obj_id,neg_attr)
+        else:
+            memory_data = (img_paths, neg_img, labels, labels_b, attr, obj, obj_id,neg_attr)
+    if neg_img is None:
 
-        memory_data = (img_paths, labels,labels_b)
+        def parse_fn(path, *label):
+            img = tf.io.read_file(path)
+            img = tf.image.decode_png(img, 3)  # fix channels to 3
+            return (img,)  + label
+    else:
 
-    def parse_fn(path, *label):
-        img = tf.io.read_file(path)
-        img = tf.image.decode_png(img, 3)  # fix channels to 3
+        def parse_fn(path,neg_path, *label):
+            img = tf.io.read_file(path)
+            img = tf.image.decode_png(img, 3)  # fix channels to 3
 
-        return (img,) + label
+            neg_img = tf.io.read_file(neg_path)
+            neg_img = tf.image.decode_png(neg_img, 3)  # fix channels to 3
+
+            return (img,) + (neg_img,) + label
 
 
     if map_fn:  # fuse `map_fn` and `parse_fn`

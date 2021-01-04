@@ -77,19 +77,34 @@ sess.__enter__()  # make default
 # get the next item
 #while True:
 with tf.Session() as sess:
-        train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
+        train_dataset, len_train_dataset,img_deck = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
                                                                        args.batch_size,
                                                                        load_size=args.load_size, crop_size=args.crop_size,
-                                                                       training=True, shuffle=False, repeat=None)
+                                                                       training=True, shuffle=True, repeat=None)
         print(len_train_dataset)
-        print(train_dataset)
+
+        val_dataset, len_val_dataset,test_img_deck = data.make_mitstates_dataset(args.img_dir, args.train_label_path,
+                                                                       args.att_names,
+                                                                       args.batch_size,
+                                                                       load_size=args.load_size,
+                                                                       crop_size=args.crop_size,
+                                                                       training=False, shuffle=False, repeat=None)
+        print(len_val_dataset)
+        print(test_img_deck)
+        # print(train_dataset)
 
         train_iter = train_dataset.make_one_shot_iterator()
-        xa, a_x ,b = train_iter.get_next()
-        a = tf.one_hot(a_x, depth=n_atts)
-        print(xa)
-        print(a_x)
-        print(b)
+        xa, a_x ,b ,attr, obj, obj_id,neg_attr, xb_ref = train_iter.get_next()
+
+
+        print(sess.run([a_x,b,attr,obj,obj_id,neg_attr,xb_ref]))
+
+        val_iter = val_dataset.make_one_shot_iterator()
+        xa, a_x ,b ,attr, obj, obj_id,neg_attr = val_iter.get_next()
+        # a = tf.one_hot(a_x, depth=n_atts)
+        # print(xa)
+        # print(a_x)
+        # print(b)
         #
         # Tensor("IteratorGetNext:0", shape=(2, 256, 256, 3), dtype=float32)
         # Tensor("IteratorGetNext:1", shape=(2,), dtype=int64)
@@ -99,7 +114,8 @@ with tf.Session() as sess:
         # attribute_switch_indices = tf.where(tf.equal(one,b_))
         # result = tf.squeeze(attribute_switch_indices)
 
-        # print(sess.run([a,b]))
+        print(sess.run([a_x,b,attr,obj,obj_id,neg_attr]))
+
         #
         # train_iter = train_dataset.make_one_shot_iterator()
         # xa, a_x, b = train_iter.get_next()
@@ -110,7 +126,7 @@ with tf.Session() as sess:
         # attribute_switch_indices = tf.where(tf.equal(one,b_))
         # result = tf.squeeze(attribute_switch_indices)
 
-        print(sess.run([a, b]))
+#        print(sess.run([a, b]))
 
        #  print(sess.run(a))# do something with element
        #  print(sess.run(b))

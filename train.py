@@ -34,7 +34,7 @@ default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', '
 # default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
 #                           'burnt', 'caramelized', 'chipped', 'clean', 'clear']
 py.arg('--att_names', choices=data.ATT_ID.keys(), nargs='+', default=default_att_names)
-
+py.arg('--n_obj',type=int, default=245)
 py.arg('--img_dir', default='./data/mit-states-original/images')
 py.arg('--train_label_path', default='./data/mit-states-original/train_composeAE_AttGAN.txt')
 py.arg('--val_label_path',default='./data/mit-states-original/train_composeAE_AttGAN.txt')
@@ -74,7 +74,7 @@ py.args_to_yaml(py.join(output_dir, 'settings.yml'), args)
 
 # others
 n_atts = len(args.att_names)
-
+n_objs = args.n_obj #mit_states
 sess = tl.session()
 sess.__enter__()  # make default
 
@@ -84,13 +84,13 @@ sess.__enter__()  # make default
 # ==============================================================================
 
 # data
-# train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
-#                                                             load_size=args.load_size, crop_size=args.crop_size,
-#                                                             training=True, shuffle=False, repeat=None)
-val_dataset, len_val_dataset = data.make_mitstates_dataset(args.img_dir, args.val_label_path, args.att_names, args.n_samples,
+train_dataset, len_train_dataset,_ = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names, args.batch_size,
+                                                            load_size=args.load_size, crop_size=args.crop_size,
+                                                            training=True, shuffle=False, repeat=None)
+val_dataset, len_val_dataset,_ = data.make_mitstates_dataset(args.img_dir, args.val_label_path, args.att_names, args.n_samples,
                                                         load_size=args.load_size, crop_size=args.crop_size,
                                                         training=False, shuffle=False, repeat=None)
-# train_iter = train_dataset.make_one_shot_iterator()
+train_iter = train_dataset.make_one_shot_iterator()
 val_iter = val_dataset.make_one_shot_iterator()
 
 # model
@@ -111,19 +111,19 @@ def D_train_graph():
 
     # placeholders & inputs
     lr = tf.placeholder(dtype=tf.float32, shape=[])
+    #xa, a_x, b, attr, obj, obj_id, neg_attr, xb_ref = train_iter.get_next()
+    xa, a , b_a , _, _, o,_,xb_ref = train_iter.get_next()
 
-    xa = tf.placeholder(dtype=tf.float32, shape=[None,args.crop_size,args.crop_size,3])
-    a_a = tf.placeholder(dtype=tf.int64,shape=[None])
-    b_a = tf.placeholder(dtype=tf.int64,shape=[None])
-
-   # xa, a , b_a= train_iter.get_next()
-
-    a = tf.one_hot(a_a,depth=n_atts)
+    a = tf.one_hot(a,depth=n_atts)
 
     #b_a = np.random.choice(b_a,-1) #random attribute to change
     b = tf.one_hot(b_a, depth=n_atts)
 
     b_ = b * 2 - 1
+
+    #
+    # o = tf.one_hot(o,depth=n_objs)
+    # o_ = o * 2 -1
 
     # generate
     z = Genc(xa)
@@ -166,7 +166,7 @@ def D_train_graph():
     # ======================================
 
     def run(**pl_ipts):
-        sess.run([step, summary], feed_dict={lr: pl_ipts['lr'],xa:pl_ipts['xa'],a_a:pl_ipts['a_a'],b_a:pl_ipts['b_a']})
+        sess.run([step, summary], feed_dict={lr: pl_ipts['lr']})
 
     return run
 
@@ -178,15 +178,12 @@ def G_train_graph():
 
     # placeholders & inputs
     lr = tf.placeholder(dtype=tf.float32, shape=[])
+    # xa, a_x, b, attr, obj, obj_id, neg_attr, xb_ref = train_iter.get_next()
 
-    xa = tf.placeholder(dtype=tf.float32, shape=[None, args.crop_size, args.crop_size, 3])
-    a_a = tf.placeholder(dtype=tf.int64, shape=[None])
-    b_a = tf.placeholder(dtype=tf.int64, shape=[None])
-
-   # xa, a , b_a = train_iter.get_next()
+    xa, a , b_a ,attr, obj, o, _ , xb_ref= train_iter.get_next()
 
 
-    a = tf.one_hot(a_a, depth=n_atts)
+    a = tf.one_hot(a, depth=n_atts)
 
     #b_a = np.random.choice(b_a)  # random attribute to change
     b = tf.one_hot(b_a, depth=n_atts)
@@ -241,7 +238,7 @@ def G_train_graph():
     # ======================================
 
     def run(**pl_ipts):
-        sess.run([step, summary], feed_dict={lr: pl_ipts['lr'],xa:pl_ipts['xa'],a_a:pl_ipts['a_a'],b_a:pl_ipts['b_a']})
+        sess.run([step, summary], feed_dict={lr: pl_ipts['lr']})
 
     return run
 
@@ -268,9 +265,10 @@ def sample_graph():
 
     def run(epoch, iter):
         # data for sampling
-        xa_ipt, a_ipt, b_a_ipt = sess.run(val_next)
-        a_ipt = tf.one_hot(a_ipt, depth=n_atts)
-        b_a_ipt = tf.one_hot(b_a_ipt, depth=n_atts)
+        #xa, a_x, b, attr, obj, obj_id, neg_attr = val_iter.get_next()
+        xa_ipt, a, b,attr, obj, o,neg_attr = sess.run(val_next)
+        a_ipt = tf.one_hot(a, depth=n_atts)
+        b_a_ipt = tf.one_hot(b, depth=n_atts)
 
         b_ipt_list = [a_ipt,b_a_ipt]  # the first is for reconstruction
         # for attr in b_a_ipt:
@@ -286,7 +284,7 @@ def sample_graph():
 
         sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
         sample = np.reshape(sample, (-1, sample.shape[2] * sample.shape[3], sample.shape[4]))
-        im.imwrite(sample, '%s/Epoch-%d_Iter-%d.jpg' % (save_dir, epoch, iter))
+        im.imwrite(sample, '%s/Epoch-%d_Iter-%d-posAttr-%s-negAttr-%s-obj-%s.jpg' % (save_dir, epoch, iter,attr,neg_attr,obj))
 
         # for i in range(n_atts):
         #     tmp = np.array(a_ipt, copy=True)
@@ -341,13 +339,6 @@ try:
         # learning rate
         lr_ipt = lr_fn(ep)
 
-        train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path,
-                                                                      args.att_names, args.batch_size,
-                                                                      load_size=args.load_size,
-                                                                      crop_size=args.crop_size,
-                                                                      training=True, shuffle=False, repeat=None)
-        train_iter = train_dataset.make_one_shot_iterator()
-
         for it in tqdm.trange(len_train_dataset, desc='Inner Epoch Loop'):
             if it + ep * len_train_dataset < sess.run(step_cnt):
                 continue
@@ -355,12 +346,10 @@ try:
 
             # train D
             if step % (args.n_d + 1) != 0:
-                xa, a, b_a = train_iter.get_next()
-                D_train_step(lr=lr_ipt,xa=xa.eval(),a_a=a.eval(),b_a=b_a.eval())
+                D_train_step(lr=lr_ipt)
             # train G
             else:
-                xa, a, b_a = train_iter.get_next()
-                G_train_step(lr=lr_ipt,xa=xa.eval(),a_a=a.eval(),b_a=b_a.eval())
+                G_train_step(lr=lr_ipt)
 
             # save
             if step % (1000 * (args.n_d + 1)) == 0:

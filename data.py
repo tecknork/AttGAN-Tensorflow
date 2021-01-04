@@ -142,10 +142,21 @@ def make_mitstates_dataset(img_dir,
 
 
 
-        traindata = MitStatesDataSet(training).get_data()
-        img_paths = [data[0] for data in traindata]
-        labels = np.array([data[3] for data in traindata])
-        labels_b = np.array([np.random.choice(data[5]) for data in traindata])
+        mit_states = MitStatesDataSet(training)
+        traindata = mit_states.get_data()
+
+        img_deck = mit_states.get_images(training) #images_dataset
+        img_paths = np.array([data[0] for data in traindata])
+        labels = np.array([data[3] for data in traindata]) # attr
+        labels_b = np.array([data[5] for data in traindata]) # neg_attr
+        attr = np.array([data[1] for data in traindata]) # attr _ name
+        obj = np.array([data[2] for data in traindata])  # obj _ name
+        obj_id = np.array([data[4] for data in traindata])
+        neg_attr= np.array([data[6] for data in traindata])
+        if training:
+            neg_img = np.array([data[7] for data in traindata])
+        else:
+            neg_img = None
         #labels_b = pad(labels_ba,-1)
         #img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
         #img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
@@ -156,15 +167,19 @@ def make_mitstates_dataset(img_dir,
 
         # no shuffle TODO in MITdatasetclass
 
-        # if shuffle:
-        #     idx = np.random.permutation(len(img_paths))
-        #     img_paths = img_paths[idx]
-        #     labels = labels[idx]
-        #     labels_b = labels_b[idx]
-
+        if shuffle:
+            idx = np.random.permutation(len(img_paths))
+            img_paths = img_paths[idx]
+            labels = labels[idx]
+            labels_b = labels_b[idx]
+            attr= attr[idx]
+            obj = obj[idx]
+            obj_id = obj_id[idx]
+            neg_img = neg_img[idx]
+            neg_attr = neg_attr[idx]
         if training:
 
-            def map_fn_(img, label,label_b):
+            def map_fn_(img,neg_img, label,label_b,attr,obj,obj_id,neg_attr):
                 img = tf.image.resize(img, [load_size, load_size])
                 # img = tl.random_rotate(img, 5)
                 img = tf.image.random_flip_left_right(img)
@@ -172,22 +187,35 @@ def make_mitstates_dataset(img_dir,
                 # img = tl.color_jitter(img, 25, 0.2, 0.2, 0.1)
                 # img = tl.random_grayscale(img, p=0.3)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
+
+                neg_img = tf.image.resize(neg_img, [load_size, load_size])
+                # img = tl.random_rotate(img, 5)
+                neg_img = tf.image.random_flip_left_right(neg_img)
+                neg_img = tf.image.random_crop(neg_img, [crop_size, crop_size, 3])
+                # img = tl.color_jitter(img, 25, 0.2, 0.2, 0.1)
+                # img = tl.random_grayscale(img, p=0.3)
+                neg_img = tf.clip_by_value(neg_img, 0, 255) / 127.5 - 1
                 #label = (label + 1) // 2
 
-                return img, label,label_b
+                return img, label,label_b,attr,obj,obj_id,neg_attr,neg_img
         else:
-            def map_fn_(img, label,label_b):
+            def map_fn_(img, label,label_b,attr,obj,obj_id,neg_attr):
                 img = tf.image.resize(img, [load_size, load_size])
                 img = tl.center_crop(img, size=crop_size)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
                 #label = (label + 1) // 2
 
-                return img, label,label_b
+                return img, label,label_b,attr,obj,obj_id,neg_attr
 
         dataset = tl.disk_image_batch_dataset(img_paths,
                                               batch_size,
                                               labels=labels,
                                               labels_b=labels_b,
+                                              attr= attr,
+                                              neg_attr = neg_attr,
+                                              obj = obj,
+                                              obj_id = obj_id,
+                                              neg_img = neg_img,
                                               drop_remainder=drop_remainder,
                                               map_fn=map_fn_,
                                               shuffle=shuffle,
@@ -198,7 +226,7 @@ def make_mitstates_dataset(img_dir,
         else:
             len_dataset = int(np.ceil(len(img_paths) / batch_size))
 
-        return dataset, len_dataset
+        return dataset, len_dataset ,img_deck
 
 
 class MitStatesDataSet():
@@ -214,7 +242,7 @@ class MitStatesDataSet():
 
         self.train_data, self.test_data, self.test_data_query = self.get_split_info()
 
-        self.data = self.train_data if training  else self.test_data  # list of [img_name, attr, obj, attr_id, obj_id, feat]
+        self.data = self.train_data if training  else self.test_data_query  # list of [img_name, attr, obj, attr_id, obj_id, feat]
 
         self.obj_affordance_mask = []
         for _obj in self.objs:
@@ -240,16 +268,31 @@ class MitStatesDataSet():
         self.query_data = []
         obj_attr_ids = self.noun2adjs_id_dataset(self.data)
         for i,datas in enumerate(self.data):
-                self.data[i].append([attr_id for attr_id in obj_attr_ids[datas[2]] if attr_id != self.data[i][3]])
-            # for attr_id in obj_attr_ids[datas[2]]:
-            #     if attr_id != self.data[i][3]:
-            #         query_d = datas
-            #         query_d = query_d + [attr_id]
-            #         self.query_data.append(query_d)
+            if training:
+                size = len(obj_attr_ids[datas[2]])
+                for attr_id in np.random.choice(obj_attr_ids[datas[2]], np.random.choice(size), replace=False):
+                    if attr_id != self.data[i][3]:
+                        query_d = datas
+                        query_d = query_d + [attr_id] + [self.attrs[attr_id]] + [self.sample_negative(attr_id,self.data[i][4])]
+                        self.query_data.append(query_d)
 
+        self.data = self.query_data if training else self.test_data_query  # list of [img_name, attr, obj, attr_id, obj_id, feat]
 
     def get_data(self):
-        return self.data
+
+            return self.data
+
+    def get_images(self,training=True):
+        if training:
+            return self.get_image_dataset(self.train_data)
+        else:
+            return self.get_image_dataset(self.test_data)
+
+    def find_img_with_attr_obj(self,attr_id,obj_id):
+        for i in self.data:
+            if i[3] == attr_id and i[4] == obj_id:
+                return i[0]
+
 
     def noun2adjs_id_dataset(self,data):
         noun2adjs = {}
@@ -294,9 +337,9 @@ class MitStatesDataSet():
                     u'wheel', u'window', u'wool'
                 ]
 
-                # train_nouns= [
-                #     u'armor', u'bracelet', u'bush',
-                # ]
+                train_nouns= [
+                    u'armor', u'bracelet', u'bush',
+                ]
                 # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
                 #               'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered',
                 #               'coiled', 'cooked', 'cored', 'cracked', 'creased', 'crinkled', 'crumpled', 'crushed',
@@ -319,7 +362,7 @@ class MitStatesDataSet():
 
                 if obj in test_nouns:
                     test_data.append(data_i)
-                else:
+                if obj in train_nouns:
                     train_data.append(data_i)
 
             #print(train_data)
@@ -374,7 +417,7 @@ class MitStatesDataSet():
                 obj = data[2]
                 for target_adj in noun2adjs_test_dataset[obj]:
                     if target_adj != attr:
-                        query = data + [self.attr2idx[target_adj], self.obj2idx[obj], target_adj, obj]
+                        query = data + [self.attr2idx[target_adj], target_adj, self.obj2idx[obj], obj]
                         test_data_query.append(query)
 
 
@@ -414,10 +457,26 @@ class MitStatesDataSet():
 
             return all_attrs, all_objs, all_pairs, tr_pairs, ts_pairs
 
-
     def sample_negative(self, attr_id, obj_id):
-            return np.random.choice(self.neg_pool[obj_id][attr_id])
+            id = np.random.choice(self.neg_pool[obj_id][attr_id])
+            return self.data[id][0]
 
+    def get_image_dataset(self,dataset):
+          images_path = [data[0] for data in dataset]
+          dataset = tf.data.Dataset.from_tensor_slices(images_path)
+          import multiprocessing
+          n_map_threads = multiprocessing.cpu_count()
 
+          def map_fn_(path):
+              load_size =256
+              crop_size =256
+              img = tf.io.read_file(path)
+              img = tf.image.decode_png(img, 3)
+              img = tf.image.resize(img, [load_size, load_size])
+              img = tl.center_crop(img, size=crop_size)
+              img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
+              # label = (label + 1) // 2
+              return img
 
-
+          dataset = dataset.map(map_fn_, num_parallel_calls=n_map_threads)
+          return dataset

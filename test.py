@@ -44,7 +44,7 @@ sess.__enter__()  # make default
 # data
 test_dataset, len_test_dataset = data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
                                                           load_size=args.load_size, crop_size=args.crop_size,
-                                                          training=True, drop_remainder=False, shuffle=False, repeat=None)
+                                                          training=False, drop_remainder=False, shuffle=False, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
 
 
@@ -95,7 +95,8 @@ def sample_graph():
         cnt = 0
         for _ in tqdm.trange(len_test_dataset):
             # data for sampling
-            xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
+           # xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
+            xa_ipt, a_ipt, b_a_ipt, attr, obj, o, neg_attr = sess.run(test_next)
 
             a_ipt = tf.one_hot(a_ipt, depth=n_atts)
             b_a_ipt = tf.one_hot(b_a_ipt, depth=n_atts)
@@ -115,7 +116,7 @@ def sample_graph():
 
             for s in sample:
                 cnt += 1
-                im.imwrite(s, '%s/%d.jpg' % (save_dir, cnt))
+                im.imwrite(s, '%s/%d-posAttr-%s-negAttr-%s-obj-%s.jpg' % (save_dir, cnt,attr,neg_attr,obj))
 
     return run
 
