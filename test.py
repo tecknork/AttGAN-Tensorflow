@@ -6,7 +6,7 @@ import pylib as py
 import tensorflow as tf
 import tflib as tl
 import tqdm
-import utils
+
 import data
 import module
 
@@ -44,11 +44,11 @@ sess.__enter__()  # make default
 # ==============================================================================
 
 # data
-test_dataset, len_test_dataset,test_img_stack,len_test_img_database = data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
+test_dataset, len_test_dataset,_,_ = data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
                                                           load_size=args.load_size, crop_size=args.crop_size,
-                                                          training=False, drop_remainder=True, shuffle=False, repeat=None)
+                                                          training=True, drop_remainder=False, shuffle=False, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
-print(test_img_stack)
+
 
 # ==============================================================================
 # =                                   graph                                    =
@@ -60,7 +60,6 @@ def sample_graph():
     # ======================================
 
     test_next = test_iter.get_next()
-    # test_img_next = test_img_iter.get_next()
 
     if not os.path.exists(py.join(output_dir, 'generator.pb')):
         # model
@@ -72,13 +71,6 @@ def sample_graph():
 
         # sample graph
         x = Gdec(Genc(xa, training=False), b_, training=False)
-
-        # all image embeddings
-
-       # z_all = Genc(test_img_stack,training=False)
-        title_images = utils.tile_tensor(test_img_stack, 0, args.n_samples)
-        #x_r_all = Genc(x,training=False)
-
     else:
         # load freezed model
         with tf.gfile.GFile(py.join(output_dir, 'generator.pb'), 'rb') as f:
@@ -103,18 +95,6 @@ def sample_graph():
 
     def run():
         cnt = 0
-
-        # z_alls = []
-        # for _ in tqdm.trange(len_test_img_database):
-        #     x_d , attr, obj = sess.run(test_img_next)
-        #
-        #     #z = sess.run(z_all,feed_dict={x_all:x_d})
-        #     z_alls.append(z_all)
-        #
-        # z_alls_tensor = tf.stack(z_alls)
-
-        indices_per_sample = []
-       # x_r_list= []
         for _ in tqdm.trange(len_test_dataset):
             # data for sampling
            # xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
@@ -127,42 +107,20 @@ def sample_graph():
             #     if attr != -1:
             #         tmp = tf.one_hot(attr, depth=n_atts)
             #         b_ipt_list.append(tmp)
-            # x_opt_list = [xa_ipt]
-            # for i, b_ipt in enumerate(b_ipt_list):
-            #     b__ipt = b_ipt * 2 - 1
-            #     x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
-            #     x_opt_list.append(x_opt)
+            x_opt_list = [xa_ipt]
+            for i, b_ipt in enumerate(b_ipt_list):
+                b__ipt = b_ipt * 2 - 1
+                x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
+                x_opt_list.append(x_opt)
 
-            b__ipt = b_a_ipt * 2 - 1
-            #x_r = sess.run(x_r_all, feed_dict={xa: xa_ipt, b_: b__ipt.eval()})
-            repeat_x = utils.repeat_tensor(x,0,len_test_img_database)
-            dis = tf.negative(tf.norm(repeat_x - title_images, axis=-1))
-            # print(dis.get_shape())
-            # dis_per_image =  tf.map_fn(fn=lambda k: dis[...,k],
-            #                 elems=tf.range(batchsize),
-            #                 dtype=tf.float32)
-            dis_per_image = tf.split(dis, args.n_samples)
-            values, indices = tf.nn.top_k(dis_per_image, k=10, sorted=False)
+            sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
+            sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
 
-
-            indices_per_sample.append(sess.run(indices,feed_dict={xa: xa_ipt, b_: b__ipt.eval()}))
-
-        print(indices_per_sample)
-          #  x_r_list.append(x_r)
-
-
-
-
-       # print(x_r_list)
-            # sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
-            # sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
-            #
-            # for i,s in enumerate(sample):
-            #     cnt += 1
-            #     im.imwrite(s, '%s/%d-posAttr-%s-negAttr-%s-obj-%s.jpg' % (save_dir, cnt,attr[i],neg_attr[i],obj[i]))
+            for i,s in enumerate(sample):
+                cnt += 1
+                im.imwrite(s, '%s/%d-posAttr-%s-NegAttr-%s-Obj-%s.jpg' % (save_dir, cnt,attr,neg_attr,obj))
 
     return run
-
 
 
 sample = sample_graph()
