@@ -269,7 +269,7 @@ def sample_graph():
     def run(epoch, iter):
         # data for sampling
         #xa, a_x, b, attr, obj, obj_id, neg_attr = val_iter.get_next()
-        xa_ipt, a, b,attr, obj, o,neg_attr = sess.run(val_next)
+        xa_ipt, a, b,attr, obj, o,neg_attr,_ = sess.run(val_next)
         a_ipt = tf.one_hot(a, depth=n_atts)
         b_a_ipt = tf.one_hot(b, depth=n_atts)
 
