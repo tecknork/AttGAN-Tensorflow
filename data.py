@@ -341,7 +341,7 @@ class MitStatesDataSet():
                 #     u'armor',
                 # ]
 
-
+                #
                 # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
                 #               'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered',
                 #               'coiled', 'cooked', 'cored', 'cracked', 'creased', 'crinkled', 'crumpled', 'crushed',
@@ -359,13 +359,15 @@ class MitStatesDataSet():
                 #               'winding',
                 #               'worn', 'wrinkled', 'young']
                 #
-                # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
-                #               'burnt', 'caramelized', 'chipped', 'clean', 'clear']
+                train_attr = ['ancient', 'modern', 'moldy', 'blunt', 'bent', 'broken', 'peeled', 'rusty',
+                              'burnt', 'sliced', 'muddy', 'murky', 'mossy']
 
                 if obj in test_nouns:
-                    test_data.append(data_i)
+                    if attr in train_attr:
+                        test_data.append(data_i)
                 else:
-                    train_data.append(data_i)
+                    if attr in train_attr:
+                        train_data.append(data_i)
 
             #print(train_data)
                     # negative image pool

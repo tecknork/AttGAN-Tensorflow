@@ -205,11 +205,13 @@ def G_train_graph():
     xb__loss_gan = g_loss_fn(xb__logit_gan)
     xb__loss_att = tf.losses.sigmoid_cross_entropy(b, xb__logit_att)
     xa__loss_rec = tf.losses.absolute_difference(xa, xa_)
+    xb__loss_rec = tf.losses.absolute_difference(xb_ref, xb_) #perpetual loss
     reg_loss = tf.reduce_sum(Genc.func.reg_losses + Gdec.func.reg_losses)
 
     loss = (xb__loss_gan +
             xb__loss_att * args.g_attribute_loss_weight +
             xa__loss_rec * args.g_reconstruction_loss_weight +
+            xb__loss_rec * args.g_reconstruction_loss_weight +
             reg_loss)
 
     # optim
@@ -223,6 +225,7 @@ def G_train_graph():
             'xb__loss_gan': xb__loss_gan,
             'xb__loss_att': xb__loss_att,
             'xa__loss_rec': xa__loss_rec,
+            'xb__loss_rec': xb__loss_rec,#perpetual loss
             'reg_loss': reg_loss
         }, step=step_cnt, name='G')
 

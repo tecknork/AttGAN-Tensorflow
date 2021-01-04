@@ -77,7 +77,7 @@ sess.__enter__()  # make default
 # get the next item
 #while True:
 with tf.Session() as sess:
-        train_dataset, len_train_dataset,img_deck,_ = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
+        train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
                                                                        args.batch_size,
                                                                        load_size=args.load_size, crop_size=args.crop_size,
                                                                        training=True, shuffle=True, repeat=None)
@@ -104,9 +104,9 @@ with tf.Session() as sess:
 
 
 
-        print(img_deck)
-        tile_deck = utils.tile_tensor(img_deck, 0, args.n_samples)
-        print(tile_deck)
+        # print(img_deck)
+        # tile_deck = utils.tile_tensor(img_deck, 0, args.n_samples)
+        # print(tile_deck)
         #
         # test_img_deck = test_img_deck.batch(2)
         # test_img_iter = test_img_deck.make_one_shot_iterator()
