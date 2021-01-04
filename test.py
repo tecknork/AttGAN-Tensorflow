@@ -100,8 +100,9 @@ def sample_graph():
            # xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
             xa_ipt, a_ipt, b_a_ipt, attr, obj, o, neg_attr,_ = sess.run(test_next)
 
-            a_ipt = tf.one_hot(a_ipt, depth=n_atts)
-            b_a_ipt = tf.one_hot(b_a_ipt, depth=n_atts)
+            a_ipt = np.eye(n_atts)[a_ipt]  #tf.one_hot(a_ipt, depth=n_atts)
+
+            b_a_ipt = np.eye(n_atts)[b_a_ipt] #tf.one_hot(b_a_ipt, depth=n_atts)
             b_ipt_list = [a_ipt,b_a_ipt]  # the first is for reconstruction
             # for attr in b_a_ipt:
             #     if attr != -1:
