@@ -77,30 +77,51 @@ sess.__enter__()  # make default
 # get the next item
 #while True:
 with tf.Session() as sess:
-        train_dataset, len_train_dataset,img_deck = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
+        train_dataset, len_train_dataset,img_deck,_ = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
                                                                        args.batch_size,
                                                                        load_size=args.load_size, crop_size=args.crop_size,
                                                                        training=True, shuffle=True, repeat=None)
         print(len_train_dataset)
 
-        val_dataset, len_val_dataset,test_img_deck = data.make_mitstates_dataset(args.img_dir, args.train_label_path,
+        val_dataset, len_val_dataset,test_img_deck,len_test_img_deck = data.make_mitstates_dataset(args.img_dir, args.train_label_path,
                                                                        args.att_names,
                                                                        args.batch_size,
                                                                        load_size=args.load_size,
                                                                        crop_size=args.crop_size,
                                                                        training=False, shuffle=False, repeat=None)
-        print(len_val_dataset)
-        print(test_img_deck)
-        # print(train_dataset)
+        # print(len_val_dataset)
+        # print(test_img_deck)
+        # # print(train_dataset)
+        #
+        # train_iter = train_dataset.make_one_shot_iterator()
+        # xa, a_x ,b ,attr, obj, obj_id,neg_attr, xb_ref = train_iter.get_next()
+        #
+        #
+        # print(sess.run([a_x,b,attr,obj,obj_id,neg_attr,xb_ref]))
+        #
+        # val_iter = val_dataset.make_one_shot_iterator()
+        # xa, a_x ,b ,attr, obj, obj_id,neg_attr = val_iter.get_next()
 
-        train_iter = train_dataset.make_one_shot_iterator()
-        xa, a_x ,b ,attr, obj, obj_id,neg_attr, xb_ref = train_iter.get_next()
 
+        print(len_test_img_deck)
+        #
+        test_img_deck = test_img_deck.batch(2)
+        test_img_iter = test_img_deck.make_one_shot_iterator()
+        train_iter = test_img_iter.get_next()
+        flatten_images = []
+        for _ in tqdm.trange(len_test_img_deck//2):
 
-        print(sess.run([a_x,b,attr,obj,obj_id,neg_attr,xb_ref]))
+            imgs, attr, obj = train_iter
+            imgs_a = tf.reshape(imgs,[-1])
+            #print(imgs)
+           # print(imgs_a)
+            flatten_images.append(imgs_a)
+            #print(sess.run([imgs, imgs_a]))
+        print(flatten_images)
+        #print(sess.run([flatten_images]))
 
-        val_iter = val_dataset.make_one_shot_iterator()
-        xa, a_x ,b ,attr, obj, obj_id,neg_attr = val_iter.get_next()
+# print(sess.run(train_iter))
+
         # a = tf.one_hot(a_x, depth=n_atts)
         # print(xa)
         # print(a_x)
@@ -114,7 +135,7 @@ with tf.Session() as sess:
         # attribute_switch_indices = tf.where(tf.equal(one,b_))
         # result = tf.squeeze(attribute_switch_indices)
 
-        print(sess.run([a_x,b,attr,obj,obj_id,neg_attr]))
+       # print(sess.run([a_x,b,attr,obj,obj_id,neg_attr]))
 
         #
         # train_iter = train_dataset.make_one_shot_iterator()

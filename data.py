@@ -145,7 +145,7 @@ def make_mitstates_dataset(img_dir,
         mit_states = MitStatesDataSet(training)
         traindata = mit_states.get_data()
 
-        img_deck = mit_states.get_images(training) #images_dataset
+        img_deck,len_img_deck = mit_states.get_images(training) #images_dataset
         img_paths = np.array([data[0] for data in traindata])
         labels = np.array([data[3] for data in traindata]) # attr
         labels_b = np.array([data[5] for data in traindata]) # neg_attr
@@ -226,7 +226,7 @@ def make_mitstates_dataset(img_dir,
         else:
             len_dataset = int(np.ceil(len(img_paths) / batch_size))
 
-        return dataset, len_dataset ,img_deck
+        return dataset, len_dataset ,img_deck,len_img_deck
 
 
 class MitStatesDataSet():
@@ -338,6 +338,10 @@ class MitStatesDataSet():
                 ]
 
                 train_nouns= [
+                    u'armor', u'bracelet', u'bush',
+                ]
+
+                test_nouns = [
                     u'armor', u'bracelet', u'bush',
                 ]
                 # train_attr = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
@@ -463,11 +467,14 @@ class MitStatesDataSet():
 
     def get_image_dataset(self,dataset):
           images_path = [data[0] for data in dataset]
-          dataset = tf.data.Dataset.from_tensor_slices(images_path)
+          attr = [data[3] for data in dataset]
+          obj = [data[4] for data in dataset]
+
+          dataset = tf.data.Dataset.from_tensor_slices((images_path,attr,obj))
           import multiprocessing
           n_map_threads = multiprocessing.cpu_count()
 
-          def map_fn_(path):
+          def map_fn_(path,attr,obj):
               load_size =256
               crop_size =256
               img = tf.io.read_file(path)
@@ -476,7 +483,8 @@ class MitStatesDataSet():
               img = tl.center_crop(img, size=crop_size)
               img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
               # label = (label + 1) // 2
-              return img
+              return img,attr,obj
 
           dataset = dataset.map(map_fn_, num_parallel_calls=n_map_threads)
-          return dataset
+          #dataset = dataset.batch(2)
+          return dataset ,len(images_path)
