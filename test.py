@@ -116,9 +116,9 @@ def sample_graph():
             sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
             sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
 
-            for s in sample:
+            for i,s in enumerate(sample):
                 cnt += 1
-                im.imwrite(s, '%s/%d-posAttr-%s-negAttr-%s-obj-%s.jpg' % (save_dir, cnt,attr,neg_attr,obj))
+                im.imwrite(s, '%s/%d-posAttr-%s-negAttr-%s-obj-%s.jpg' % (save_dir, cnt,attr[i],neg_attr[i],obj[i]))
 
     return run
 
