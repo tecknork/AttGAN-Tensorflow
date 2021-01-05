@@ -31,10 +31,14 @@ default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', '
                            'sunny', 'tall', 'thawed', 'thick', 'thin', 'tight', 'tiny', 'toppled', 'torn', 'unpainted',
                            'unripe', 'upright', 'verdant', 'viscous', 'weathered', 'wet', 'whipped',
                            'wide', 'wilted', 'windblown', 'winding', 'worn', 'wrinkled', 'young']
+
+default_att_names = ['Canvas', 'Cotton', 'Faux.Fur', 'Faux.Leather', 'Full.grain.leather', 'Hair.Calf', 'Leather',
+                     'Nubuck', 'Nylon', 'Patent.Leather', 'Rubber', 'Satin', 'Sheepskin', 'Suede', 'Synthetic', 'Wool']
+
 # default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
 #                           'burnt', 'caramelized', 'chipped', 'clean', 'clear']
 py.arg('--att_names', choices=data.ATT_ID.keys(), nargs='+', default=default_att_names)
-py.arg('--n_obj',type=int, default=245)
+py.arg('--n_obj',type=int, default=12)
 py.arg('--img_dir', default='./data/mit-states-original/images')
 py.arg('--train_label_path', default='./data/mit-states-original/train_composeAE_AttGAN.txt')
 py.arg('--val_label_path',default='./data/mit-states-original/train_composeAE_AttGAN.txt')
@@ -284,6 +288,8 @@ def sample_graph():
         for i, b_ipt in enumerate(b_ipt_list):
             tmp = np.array(b_ipt, copy=True)
             b__ipt = (tmp * 2 - 1).astype(np.float32)
+            if i > 0:
+                b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
             x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
             x_opt_list.append(x_opt)
 

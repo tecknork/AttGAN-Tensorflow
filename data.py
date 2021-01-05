@@ -39,6 +39,11 @@ ATT_ID = {'ancient': 0, 'barren': 1, 'bent': 2, 'blunt': 3, 'bright': 4, 'broken
           'wide': 108, 'wilted': 109, 'windblown': 110, 'winding': 111, 'worn': 112, 'wrinkled': 113,
           'young': 114}
 
+ATT_ID = {'Canvas': 0, 'Cotton': 1, 'Faux.Fur': 2, 'Faux.Leather': 3, 'Full.grain.leather': 4, 'Hair.Calf': 5, 'Leather': 6,
+          'Nubuck': 7, 'Nylon': 8, 'Patent.Leather': 9,
+          'Rubber': 10, 'Satin': 11, 'Sheepskin': 12,
+          'Suede': 13, 'Synthetic': 14, 'Wool': 15}
+
 ID_ATT = {v: k for k, v in ATT_ID.items()}
 
 
@@ -180,7 +185,7 @@ def make_mitstates_dataset(img_dir,
         if training:
 
             def map_fn_(img,neg_img, label,label_b,attr,obj,obj_id,neg_attr):
-                img = tf.image.resize(img, [load_size, load_size])
+                img = tf.image.resize(img, [load_size, load_size],method='lanczos5')
                 # img = tl.random_rotate(img, 5)
                 img = tf.image.random_flip_left_right(img)
                 img = tf.image.random_crop(img, [crop_size, crop_size, 3])
@@ -188,7 +193,7 @@ def make_mitstates_dataset(img_dir,
                 # img = tl.random_grayscale(img, p=0.3)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
 
-                neg_img = tf.image.resize(neg_img, [load_size, load_size])
+                neg_img = tf.image.resize(neg_img, [load_size, load_size],method='lanczos5')
                 # img = tl.random_rotate(img, 5)
                 neg_img = tf.image.random_flip_left_right(neg_img)
                 neg_img = tf.image.random_crop(neg_img, [crop_size, crop_size, 3])
@@ -200,7 +205,7 @@ def make_mitstates_dataset(img_dir,
                 return img, label,label_b,attr,obj,obj_id,neg_attr,neg_img
         else:
             def map_fn_(img, label,label_b,attr,obj,obj_id,neg_attr):
-                img = tf.image.resize(img, [load_size, load_size])
+                img = tf.image.resize(img, [load_size, load_size],method='lanczos5')
                 img = tl.center_crop(img, size=crop_size)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
                 #label = (label + 1) // 2
@@ -232,8 +237,8 @@ def make_mitstates_dataset(img_dir,
 class MitStatesDataSet():
 
     def __init__(self,training=True):
-        self.root = "./data/mit-states-original"
-        self.img_path = "./data/mit-states-original/images"
+        self.root = "./data/ut-zap50k-original"
+        self.img_path = "./data/ut-zap50k-original/images"
         self.split = "/compositional-split"
         self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split()
         self.attr2idx = {attr: idx for idx, attr in enumerate(self.attrs)}
@@ -327,16 +332,16 @@ class MitStatesDataSet():
                 # data_i = [image, attr, obj, self.attr2idx[attr], self.obj2idx[obj], self.activation_dict[image],
                 # np.eye(len(self.attrs))[self.attr2idx[attr]]]
 
-                test_nouns = [
-                    u'armor', u'bracelet', u'bush', u'camera', u'candy', u'castle',
-                    u'ceramic', u'cheese', u'clock', u'clothes', u'coffee', u'fan', u'fig',
-                    u'fish', u'foam', u'forest', u'fruit', u'furniture', u'garden', u'gate',
-                    u'glass', u'horse', u'island', u'laptop', u'lead', u'lightning',
-                    u'mirror', u'orange', u'paint', u'persimmon', u'plastic', u'plate',
-                    u'potato', u'road', u'rubber', u'sand', u'shell', u'sky', u'smoke',
-                    u'steel', u'stream', u'table', u'tea', u'tomato', u'vacuum', u'wax',
-                    u'wheel', u'window', u'wool'
-                ]
+                # test_nouns = [
+                #     u'armor', u'bracelet', u'bush', u'camera', u'candy', u'castle',
+                #     u'ceramic', u'cheese', u'clock', u'clothes', u'coffee', u'fan', u'fig',
+                #     u'fish', u'foam', u'forest', u'fruit', u'furniture', u'garden', u'gate',
+                #     u'glass', u'horse', u'island', u'laptop', u'lead', u'lightning',
+                #     u'mirror', u'orange', u'paint', u'persimmon', u'plastic', u'plate',
+                #     u'potato', u'road', u'rubber', u'sand', u'shell', u'sky', u'smoke',
+                #     u'steel', u'stream', u'table', u'tea', u'tomato', u'vacuum', u'wax',
+                #     u'wheel', u'window', u'wool'
+                # ]
 
                 # train_nouns= [
                 #     u'armor',
@@ -360,10 +365,13 @@ class MitStatesDataSet():
                 #               'winding',
                 #               'worn', 'wrinkled', 'young']
                 #
-                train_attr = ['ancient', 'modern', 'moldy', 'blunt', 'bent', 'broken', 'peeled', 'rusty',
-                              'burnt', 'sliced', 'muddy', 'murky', 'mossy']
+                # train_attr = ['ancient', 'modern', 'moldy', 'blunt', 'bent', 'broken', 'peeled', 'rusty',
+                #               'burnt', 'sliced', 'muddy', 'murky', 'mossy']
 
-                if obj in test_nouns:
+                train_attr = ['Canvas', 'Cotton', 'Faux.Fur', 'Faux.Leather', 'Full.grain.leather', 'Hair.Calf', 'Leather',
+                     'Nubuck', 'Nylon', 'Patent.Leather', 'Rubber', 'Satin', 'Sheepskin', 'Suede', 'Synthetic', 'Wool']
+
+                if (attr, obj) in test_pair_set:
                     if attr in train_attr:
                         test_data.append(data_i)
                 else:
