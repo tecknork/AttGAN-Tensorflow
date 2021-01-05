@@ -115,7 +115,7 @@ def sample_graph():
                 if i>0:
                     b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
                 #b__ipt = b_ipt * 2 - 1
-                x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
+                x_opt = sess.run(x, feed_dict={xa: x_b_ref, b_: b__ipt})
                 x_opt_list.append(x_opt)
 
             sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
