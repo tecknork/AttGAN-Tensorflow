@@ -185,7 +185,7 @@ def make_mitstates_dataset(img_dir,
         if training:
 
             def map_fn_(img,neg_img, label,label_b,attr,obj,obj_id,neg_attr):
-                img = tf.image.resize(img, [load_size, load_size],method='lanczos5')
+                img = tf.image.resize(img, [136, 102])
                 # img = tl.random_rotate(img, 5)
                 img = tf.image.random_flip_left_right(img)
                 img = tf.image.random_crop(img, [crop_size, crop_size, 3])
@@ -193,7 +193,7 @@ def make_mitstates_dataset(img_dir,
                 # img = tl.random_grayscale(img, p=0.3)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
 
-                neg_img = tf.image.resize(neg_img, [load_size, load_size],method='lanczos5')
+                neg_img = tf.image.resize(neg_img, [136, 102],method='lanczos5')
                 # img = tl.random_rotate(img, 5)
                 neg_img = tf.image.random_flip_left_right(neg_img)
                 neg_img = tf.image.random_crop(neg_img, [crop_size, crop_size, 3])
@@ -205,7 +205,7 @@ def make_mitstates_dataset(img_dir,
                 return img, label,label_b,attr,obj,obj_id,neg_attr,neg_img
         else:
             def map_fn_(img, label,label_b,attr,obj,obj_id,neg_attr):
-                img = tf.image.resize(img, [load_size, load_size],method='lanczos5')
+                img = tf.image.resize(img, [136, 102])
                 img = tl.center_crop(img, size=crop_size)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
                 #label = (label + 1) // 2
