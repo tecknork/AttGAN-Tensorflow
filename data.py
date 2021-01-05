@@ -193,7 +193,7 @@ def make_mitstates_dataset(img_dir,
                 # img = tl.random_grayscale(img, p=0.3)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
 
-                neg_img = tf.image.resize(neg_img, [136, 102],method='lanczos5')
+                neg_img = tf.image.resize(neg_img, [136, 102])
                 # img = tl.random_rotate(img, 5)
                 neg_img = tf.image.random_flip_left_right(neg_img)
                 neg_img = tf.image.random_crop(neg_img, [crop_size, crop_size, 3])
