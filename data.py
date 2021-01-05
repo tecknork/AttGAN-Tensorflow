@@ -205,7 +205,7 @@ def make_mitstates_dataset(img_dir,
                 return img, label,label_b,attr,obj,obj_id,neg_attr,neg_img
         else:
             def map_fn_(img, label,label_b,attr,obj,obj_id,neg_attr):
-                img = tf.image.resize(img, [load_size, load_size],method='lanczos5')
+                img = tf.image.resize(img, [load_size, load_size])
                 img = tl.center_crop(img, size=crop_size)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
                 #label = (label + 1) // 2
