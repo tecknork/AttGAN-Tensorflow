@@ -368,8 +368,8 @@ class MitStatesDataSet():
                 # train_attr = ['ancient', 'modern', 'moldy', 'blunt', 'bent', 'broken', 'peeled', 'rusty',
                 #               'burnt', 'sliced', 'muddy', 'murky', 'mossy']
 
-                train_attr = ['Canvas', 'Cotton', 'Faux.Fur', 'Faux.Leather', 'Full.grain.leather', 'Hair.Calf', 'Leather',
-                     'Nubuck', 'Nylon', 'Patent.Leather', 'Rubber', 'Satin', 'Sheepskin', 'Suede', 'Synthetic', 'Wool']
+                train_attr = ['Canvas', 'Cotton', 'Faux.Fur', 'Hair.Calf', 'Leather',
+                     'Nubuck', 'Nylon','Rubber', 'Sheepskin', 'Wool']
 
                 if (attr, obj) in test_pair_set:
                     if attr in train_attr:

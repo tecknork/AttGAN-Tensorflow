@@ -35,6 +35,8 @@ default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', '
 default_att_names = ['Canvas', 'Cotton', 'Faux.Fur', 'Faux.Leather', 'Full.grain.leather', 'Hair.Calf', 'Leather',
                      'Nubuck', 'Nylon', 'Patent.Leather', 'Rubber', 'Satin', 'Sheepskin', 'Suede', 'Synthetic', 'Wool']
 
+default_att_names = ['Canvas', 'Cotton', 'Faux.Fur', 'Hair.Calf', 'Leather',
+                     'Nubuck', 'Nylon','Rubber', 'Sheepskin', 'Wool']
 # default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
 #                           'burnt', 'caramelized', 'chipped', 'clean', 'clear']
 py.arg('--att_names', choices=data.ATT_ID.keys(), nargs='+', default=default_att_names)
@@ -59,7 +61,7 @@ py.arg('--gradient_penalty_mode', choices=['none', '1-gp', '0-gp', 'lp'], defaul
 py.arg('--gradient_penalty_sample_mode', choices=['line', 'real', 'fake', 'dragan'], default='line')
 py.arg('--d_gradient_penalty_weight', type=float, default=10.0)
 py.arg('--d_attribute_loss_weight', type=float, default=1.0)
-py.arg('--g_attribute_loss_weight', type=float, default=10.0)
+py.arg('--g_attribute_loss_weight', type=float, default=50.0)
 py.arg('--g_reconstruction_loss_weight', type=float, default=100.0)
 py.arg('--weight_decay', type=float, default=0.0)
 
@@ -146,6 +148,7 @@ def D_train_graph():
     loss = (xa_loss_gan + xb__loss_gan +
             gp * args.d_gradient_penalty_weight +
             xa_loss_att * args.d_attribute_loss_weight +
+            xb__logit_att * args.d_attribute_loss_weight +
             reg_loss)
 
     # optim
@@ -209,13 +212,13 @@ def G_train_graph():
     xb__loss_gan = g_loss_fn(xb__logit_gan)
     xb__loss_att = tf.losses.sigmoid_cross_entropy(b, xb__logit_att)
     xa__loss_rec = tf.losses.absolute_difference(xa, xa_)
-    xb__loss_rec = tf.losses.absolute_difference(xb_ref, xb_) #perpetual loss
+   # xb__loss_rec = tf.losses.absolute_difference(xb_ref, xb_) #perpetual loss
     reg_loss = tf.reduce_sum(Genc.func.reg_losses + Gdec.func.reg_losses)
 
     loss = (xb__loss_gan +
             xb__loss_att * args.g_attribute_loss_weight +
             xa__loss_rec * args.g_reconstruction_loss_weight +
-            xb__loss_rec * args.g_reconstruction_loss_weight +
+          #  xb__loss_rec * args.g_reconstruction_loss_weight +
             reg_loss)
 
     # optim
@@ -229,7 +232,7 @@ def G_train_graph():
             'xb__loss_gan': xb__loss_gan,
             'xb__loss_att': xb__loss_att,
             'xa__loss_rec': xa__loss_rec,
-            'xb__loss_rec': xb__loss_rec,#perpetual loss
+          #  'xb__loss_rec': xb__loss_rec,#perpetual loss
             'reg_loss': reg_loss
         }, step=step_cnt, name='G')
 
