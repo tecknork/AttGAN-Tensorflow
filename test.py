@@ -46,7 +46,7 @@ sess.__enter__()  # make default
 # data
 test_dataset, len_test_dataset= data.make_mitstates_dataset(args.img_dir, args.test_label_path, args.att_names, args.n_samples,
                                                           load_size=args.load_size, crop_size=args.crop_size,
-                                                          training=True, drop_remainder=False, shuffle=True, repeat=None)
+                                                          training=False, drop_remainder=False, shuffle=True, repeat=None)
 test_iter = test_dataset.make_one_shot_iterator()
 
 
@@ -92,6 +92,24 @@ def sample_graph():
     save_dir = './output/%s/samples_testing_%s' % (args.experiment_name, '{:g}'.format(args.test_int))
     py.mkdir(save_dir)
 
+    save_dir_eval =  './output/%s/eval_testing_%s' % (args.experiment_name, '{:g}'.format(args.test_int))
+    py.mkdir(save_dir_eval)
+    save_dir_reconstructed = './output/%s/eval_testing_reconstructed_%s' % (args.experiment_name, '{:g}'.format(args.test_int))
+    py.mkdir(save_dir_reconstructed)
+
+    def generate_image_for_eval(save_dir_eval,save_dir_reconstructed,cnt,img):
+        #i == 0 - reconstructed
+        x_opt_list = [img]
+        sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
+        sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
+        for i, s in enumerate(sample):
+            cnt += 1
+            if i>0:
+                #modified img with a attribute with b
+                im.imwrite(s, '%s/%d.jpg' % (save_dir_eval, cnt))
+            else:
+                #reconstructed with a attribute
+                im.imwrite(s, '%s/%d.jpg' % (save_dir_reconstructed, cnt))
 
     def run():
         cnt = 0
@@ -116,6 +134,7 @@ def sample_graph():
                     b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
                 #b__ipt = b_ipt * 2 - 1
                 x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
+                generate_image_for_eval(save_dir_eval,save_dir_reconstructed,cnt,x_opt)
                 x_opt_list.append(x_opt)
 
             sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))

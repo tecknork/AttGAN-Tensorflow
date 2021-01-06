@@ -4,8 +4,9 @@ from collections import defaultdict
 import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-
-
+from torchvision.transforms import transforms
+import torch
+import tqdm
 # ==============================================================================
 # =                                 operations                                 =
 # ==============================================================================
@@ -90,3 +91,22 @@ def pad(array, fill_value):
             for index, value in iterate_nested_array(array):
                 result[index] = value
             return result
+
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+
+def imagenet_transform():
+    mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+
+    transform = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+    return transform

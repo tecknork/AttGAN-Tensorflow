@@ -273,6 +273,8 @@ def sample_graph():
     save_dir = './output/%s/samples_training' % args.experiment_name
     py.mkdir(save_dir)
 
+
+
     def run(epoch, iter):
         # data for sampling
         #xa, a_x, b, attr, obj, obj_id, neg_attr = val_iter.get_next()
@@ -294,6 +296,7 @@ def sample_graph():
             if i > 0:
                 b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
             x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
+
             x_opt_list.append(x_opt)
 
         sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))

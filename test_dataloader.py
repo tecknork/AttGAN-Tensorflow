@@ -10,6 +10,7 @@ import tqdm
 import utils
 import data
 import module
+from generate_features import Features
 
 # default_att_names = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses',
 #                      'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
@@ -77,11 +78,19 @@ sess.__enter__()  # make default
 # get the next item
 #while True:
 with tf.Session() as sess:
-        train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
+        train_dataset, len_train_dataset,img_deck,len_img_deck = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
                                                                        args.batch_size,
                                                                        load_size=args.load_size, crop_size=args.crop_size,
                                                                        training=True, shuffle=True, repeat=None)
         print(len_train_dataset)
+        feature_extractor = Features()
+        #img_features = feature_extractor.get_dataset_features(img_deck)
+       # print(img_features)
+
+        # img_1 = train_dataset[0]
+        # print(img_1)
+
+
 
         # val_dataset, len_val_dataset,test_img_deck,len_test_img_deck = data.make_mitstates_dataset(args.img_dir, args.train_label_path,
         #                                                                args.att_names,
@@ -93,8 +102,11 @@ with tf.Session() as sess:
         # print(test_img_deck)
         # # print(train_dataset)
         #
-        # train_iter = train_dataset.make_one_shot_iterator()
-        # xa, a_x ,b ,attr, obj, obj_id,neg_attr, xb_ref = train_iter.get_next()
+        train_iter = train_dataset.make_one_shot_iterator()
+        xa, a_x ,b ,attr, obj, obj_id,neg_attr, xb_ref = train_iter.get_next()
+        print(xa)
+        print(feature_extractor.generate_features_for_imgs(xa.eval()))
+
         #
         #
         # print(sess.run([a_x,b,attr,obj,obj_id,neg_attr,xb_ref]))

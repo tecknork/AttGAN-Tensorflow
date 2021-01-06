@@ -290,9 +290,9 @@ class MitStatesDataSet():
 
     def get_images(self,training=True):
         if training:
-            return self.get_image_dataset_new(self.train_data)
+            return self.train_data, len(self.train_data)
         else:
-            return self.get_image_dataset_new(self.test_data)
+            return self.test_data , len(self.test_data)
 
     def find_img_with_attr_obj(self,attr_id,obj_id):
         for i in self.data:
@@ -368,8 +368,7 @@ class MitStatesDataSet():
                 # train_attr = ['ancient', 'modern', 'moldy', 'blunt', 'bent', 'broken', 'peeled', 'rusty',
                 #               'burnt', 'sliced', 'muddy', 'murky', 'mossy']
 
-                train_attr = ['Canvas', 'Cotton', 'Faux.Fur', 'Hair.Calf', 'Leather',
-                     'Nubuck', 'Nylon','Rubber', 'Sheepskin', 'Wool']
+                train_attr = ['Canvas', 'Cotton', ]
 
                 if (attr, obj) in test_pair_set:
                     if attr in train_attr:
