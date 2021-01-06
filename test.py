@@ -114,7 +114,7 @@ def sample_graph():
         for _ in tqdm.trange(len_test_dataset):
             # data for sampling
            # xa_ipt, a_ipt ,b_a_ipt= sess.run(test_next)
-            xa_ipt, a_ipt, b_a_ipt, attr, obj, o, neg_attr,x_b_ref= sess.run(test_next)
+            xa_ipt, a_ipt, b_a_ipt, attr, obj, o, neg_attr= sess.run(test_next)
 
             a_ipt = np.eye(n_atts)[a_ipt]  #tf.one_hot(a_ipt, depth=n_atts)
 
@@ -124,7 +124,7 @@ def sample_graph():
             #     if attr != -1:
             #         tmp = tf.one_hot(attr, depth=n_atts)
             #         b_ipt_list.append(tmp)
-            x_opt_list = [xa_ipt,x_b_ref]
+            x_opt_list = [xa_ipt]
             for i, b_ipt in enumerate(b_ipt_list):
                 tmp = np.array(b_ipt, copy=True)
                 b__ipt = (tmp * 2 - 1).astype(np.float32)

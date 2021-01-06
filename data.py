@@ -161,7 +161,7 @@ def make_mitstates_dataset(img_dir,
         if training:
             neg_img = np.array([data[7] for data in traindata])
         else:
-            neg_img = None
+            neg_img = []
         #labels_b = pad(labels_ba,-1)
         #img_names = np.genfromtxt(label_path, dtype=str, usecols=0)
         #img_paths = np.array([py.join(img_dir, img_name) for img_name in img_names])
