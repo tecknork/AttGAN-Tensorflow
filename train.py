@@ -35,8 +35,8 @@ default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', '
 default_att_names = ['Canvas', 'Cotton', 'Faux.Fur', 'Faux.Leather', 'Full.grain.leather', 'Hair.Calf', 'Leather',
                      'Nubuck', 'Nylon', 'Patent.Leather', 'Rubber', 'Satin', 'Sheepskin', 'Suede', 'Synthetic', 'Wool']
 
-default_att_names = ['Canvas', 'Cotton', 'Faux.Fur', 'Hair.Calf', 'Leather',
-                     'Nubuck', 'Nylon','Rubber', 'Sheepskin', 'Wool']
+# default_att_names = ['Canvas', 'Cotton', 'Faux.Fur', 'Hair.Calf', 'Leather',
+#                      'Nubuck', 'Nylon','Rubber', 'Sheepskin', 'Wool']
 # default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
 #                           'burnt', 'caramelized', 'chipped', 'clean', 'clear']
 py.arg('--att_names', choices=data.ATT_ID.keys(), nargs='+', default=default_att_names)
