@@ -61,7 +61,7 @@ py.arg('--gradient_penalty_mode', choices=['none', '1-gp', '0-gp', 'lp'], defaul
 py.arg('--gradient_penalty_sample_mode', choices=['line', 'real', 'fake', 'dragan'], default='line')
 py.arg('--d_gradient_penalty_weight', type=float, default=10.0)
 py.arg('--d_attribute_loss_weight', type=float, default=1.0)
-py.arg('--g_attribute_loss_weight', type=float, default=50.0)
+py.arg('--g_attribute_loss_weight', type=float, default=10.0)
 py.arg('--g_reconstruction_loss_weight', type=float, default=100.0)
 py.arg('--weight_decay', type=float, default=0.0)
 
@@ -148,7 +148,6 @@ def D_train_graph():
     loss = (xa_loss_gan + xb__loss_gan +
             gp * args.d_gradient_penalty_weight +
             xa_loss_att * args.d_attribute_loss_weight +
-            xb__logit_att * args.d_attribute_loss_weight +
             reg_loss)
 
     # optim
