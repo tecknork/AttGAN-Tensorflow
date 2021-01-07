@@ -11,7 +11,7 @@ from generate_features import Features
 import data
 import module
 import utils
-
+from operator import add
 
 
 py.arg('--experiment_name', default='AttGAN_128_UT_ZAPPOS_Eval_small_1')
@@ -48,6 +48,7 @@ test_dataset_query = mit_states.get_data()
 img_deck ,_= mit_states.get_images(training=False)
 #attr,obj
 target_labels_for_each_query = [(data[5],data[7]) for data in test_dataset_query]
+
 #
 feature_extractor = Features()
 img_features = feature_extractor.get_dataset_features(img_deck)
@@ -61,8 +62,38 @@ top_nn_labels_per_query = []
 top_nn_per_query = []
 tile_image_emb = utils.tile_tensor(tf_img_features, 0, 16)
 
+
+
+def calculate_result_at_each_epoch(k,top_nn_per_query, top_nn_labels_per_query, target_labels_for_each_query):
+
+                        r = 0.0
+                        r_a = 0.0
+                        r_o = 0.0
+                        for query_result_image_ids,query_result_image_labels,query_target_labels in zip(top_nn_per_query,top_nn_labels_per_query,target_labels_for_each_query):
+                            if query_target_labels in query_result_image_labels[:k]:
+                                r +=1
+                            if query_target_labels[0] in [x[0] for x in query_result_image_labels[:k]]:
+                                r_a +=1
+                            if query_target_labels[1] in [x[1] for x in query_result_image_labels[:k]]:
+                                r_o +=1
+                        # r /= len(target_labels_for_each_query)
+                        # r_a /= len(target_labels_for_each_query)
+                        # r_o /= len(target_labels_for_each_query)
+
+                        print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" %(k,r,r_a,r_o))
+                        return [r, r_a, r_o]
+
+
+k_1 = []
+k_5 = []
+k_10 = []
+k_50 = []
+k_100 = []
+current_start = 0
 for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 16), total=len(test_imgages_full_path) // 16):
+    target_labels_for_current_batch = target_labels_for_each_query[current_start:current_start+len(chunk)]
     features = feature_extractor.generate_features_for_imgs(data=chunk)
+
     tf_features= tf.constant(features)
     if len(chunk) != 16:
         tile_image_emb = utils.tile_tensor(tf_img_features, 0, len(chunk))
@@ -77,26 +108,29 @@ for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 16), total=len(test_
     dis_per_image = tf.split(dis,  len(chunk))
     values, indices = tf.nn.top_k(dis_per_image, k=100, sorted=False)
     top_nn =  sess.run(indices)
-    top_nn_per_query.extend([ data for data in top_nn])
-    top_nn_labels_per_query.extend([ get_ground_label_for_image_ids(img_deck,data) for data in top_nn])
+    top_nn_per_batch = [ data for data in top_nn]
+    top_nn_labels_per_batch=[ get_ground_label_for_image_ids(img_deck,data) for data in top_nn]
+    current_start = current_start + len(chunk)
+    k_0 = list(map(add,k_0,calculate_result_at_each_epoch(0,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
+    k_5 = list(map(add,k_0,calculate_result_at_each_epoch(5,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
+    k_10 = list(map(add, k_0, calculate_result_at_each_epoch(10, top_nn_per_batch, top_nn_labels_per_batch,
+                                                            target_labels_for_current_batch)))
+    k_50 = list(map(add, k_0, calculate_result_at_each_epoch(50, top_nn_per_batch, top_nn_labels_per_batch,
+                                                        target_labels_for_current_batch)))
+    k_100 = list(map(add, k_0, calculate_result_at_each_epoch(100, top_nn_per_batch, top_nn_labels_per_batch,
+                                                        target_labels_for_current_batch)))
+
+k_0 /=  len(target_labels_for_each_query)
+k_5 /= len(target_labels_for_each_query)
+k_10 /= len(target_labels_for_each_query)
+k_50 /= len(target_labels_for_each_query)
+k_100 /= len(target_labels_for_each_query)
+
+print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (0, k_0[0], k_0[1], k_0[2]))
+print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (5, k_5[0], k_5[1], k_5[2]))
+print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (10, k_10[0], k_10[1], k_10[2]))
+print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (50, k_50[0], k_50[1], k_50[2]))
+print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (100, k_100[0], k_100[1], k_100[2]))
+
 #print(top_nn_per_query)
 
-
-
-recall_k = defaultdict(list)
-for k in [1, 5, 10, 50, 100]:
-                        r = 0.0
-                        r_a = 0.0
-                        r_o = 0.0
-                        for query_result_image_ids,query_result_image_labels,query_target_labels in zip(top_nn_per_query,top_nn_labels_per_query,target_labels_for_each_query):
-                            if query_target_labels in query_result_image_labels[:k]:
-                                r +=1
-                            if query_target_labels[0] in [x[0] for x in query_result_image_labels[:k]]:
-                                r_a +=1
-                            if query_target_labels[1] in [x[1] for x in query_result_image_labels[:k]]:
-                                r_o +=1
-                        r /= len(target_labels_for_each_query)
-                        r_a /= len(target_labels_for_each_query)
-                        r_o /= len(target_labels_for_each_query)
-                        recall_k[k].append([r,r_a,r_o])
-                        print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" %(k,r,r_a,r_o))
