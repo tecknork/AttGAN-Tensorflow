@@ -80,7 +80,7 @@ def calculate_result_at_each_epoch(k,top_nn_per_query, top_nn_labels_per_query, 
                         # r_a /= len(target_labels_for_each_query)
                         # r_o /= len(target_labels_for_each_query)
 
-                        print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" %(k,r,r_a,r_o))
+                        #print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" %(k,r,r_a,r_o))
                         return [r, r_a, r_o]
 
 
@@ -90,12 +90,12 @@ k_10 = []
 k_50 = []
 k_100 = []
 current_start = 0
-for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 16), total=len(test_imgages_full_path) // 16):
+for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 64), total=len(test_imgages_full_path) // 64):
     target_labels_for_current_batch = target_labels_for_each_query[current_start:current_start+len(chunk)]
     features = feature_extractor.generate_features_for_imgs(data=chunk)
 
     tf_features= tf.constant(features)
-    if len(chunk) != 16:
+    if len(chunk) != 64:
         tile_image_emb = utils.tile_tensor(tf_img_features, 0, len(chunk))
     #print(tile_image_emb.get_shape()) #(65*?,300)
     repeat_img_feat = utils.repeat_tensor(tf_features, 0, len(img_features))
