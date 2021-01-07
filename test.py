@@ -132,7 +132,7 @@ def sample_graph():
                     b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
                 #b__ipt = b_ipt * 2 - 1
                 x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
-                generate_image_for_eval(save_dir_eval,save_dir_reconstructed,cnt,i)
+                generate_image_for_eval(save_dir_eval,save_dir_reconstructed,cnt,x_opt,i)
                 x_opt_list.append(x_opt)
 
             sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
