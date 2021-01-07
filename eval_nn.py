@@ -121,11 +121,13 @@ for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 64), total=len(test_
     k_100 = list(map(add, k_100, calculate_result_at_each_epoch(100, top_nn_per_batch, top_nn_labels_per_batch,
                                                         target_labels_for_current_batch)))
 
-k_1 /=  len(target_labels_for_each_query)
-k_5 /= len(target_labels_for_each_query)
-k_10 /= len(target_labels_for_each_query)
-k_50 /= len(target_labels_for_each_query)
-k_100 /= len(target_labels_for_each_query)
+k_1 =  [x/len(target_labels_for_each_query) for x in k_1]
+k_5 =  [x/len(target_labels_for_each_query) for x in k_5]
+k_10 =  [x/len(target_labels_for_each_query) for x in k_10]
+k_50 =  [x/len(target_labels_for_each_query) for x in k_50]
+k_100 =  [x/len(target_labels_for_each_query) for x in k_100]
+
+
 
 print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (0, k_1[0], k_1[1], k_1[2]))
 print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (5, k_5[0], k_5[1], k_5[2]))
