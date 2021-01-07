@@ -61,7 +61,7 @@ print(len(test_imgages_full_path))
 #
 top_nn_labels_per_query = []
 top_nn_per_query = []
-tile_image_emb = utils.tile_tensor(tf_img_features, 0, 64)
+tile_image_emb = utils.tile_tensor(tf_img_features, 0, 32)
 
 
 
@@ -91,12 +91,12 @@ k_10 = [0,0,0]
 k_50 = [0,0,0]
 k_100 = [0,0,0]
 current_start = 0
-for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 64), total=len(test_imgages_full_path) // 64):
+for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 32), total=len(test_imgages_full_path) // 32):
     target_labels_for_current_batch = target_labels_for_each_query[current_start:current_start+len(chunk)]
     features = feature_extractor.generate_features_for_imgs(data=chunk)
 
     tf_features= tf.constant(features)
-    if len(chunk) != 64:
+    if len(chunk) != 32:
         tile_image_emb = utils.tile_tensor(tf_img_features, 0, len(chunk))
     #print(tile_image_emb.get_shape()) #(65*?,300)
     repeat_img_feat = utils.repeat_tensor(tf_features, 0, len(img_features))

@@ -148,7 +148,7 @@ class GenerateFeatures():
             if feat_extractor is None:
                 feat_extractor = torchvision.models.resnet18(pretrained=True)
                 feat_extractor.fc = torch.nn.Sequential()
-            feat_extractor.eval().cuda()
+            feat_extractor.eval().cpu()
 
             image_feats = []
             image_files = []
@@ -156,8 +156,8 @@ class GenerateFeatures():
                 files, attrs, objs,_,_ = zip(*chunk)
                 imgs = list(map(self.loader, files))
                 imgs = list(map(self.transform, imgs))
-                feats = feat_extractor(torch.stack(imgs, 0).cuda())
-                image_feats.append(feats.data.cuda())
+                feats = feat_extractor(torch.stack(imgs, 0).cpu())
+                image_feats.append(feats.data.cpu())
                 image_files += files
             image_feats = torch.cat(image_feats, 0)
             print('features for %d images generated' % (len(image_files)))
