@@ -81,7 +81,7 @@ def calculate_result_at_each_epoch(k,top_nn_per_query, top_nn_labels_per_query, 
                         # r_a /= len(target_labels_for_each_query)
                         # r_o /= len(target_labels_for_each_query)
 
-                        #print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" %(k,r,r_a,r_o))
+                        print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" %(k,r,r_a,r_o))
                         return [r, r_a, r_o]
 
 
@@ -112,15 +112,15 @@ for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 64), total=len(test_
     top_nn_per_batch = [ data for data in top_nn]
     top_nn_labels_per_batch=[ get_ground_label_for_image_ids(img_deck,data) for data in top_nn]
     current_start = current_start + len(chunk)
-    k_1 = list(map(add,k_1,calculate_result_at_each_epoch(0,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
+    k_1 = [sum(x) for x in zip(k_1,calculate_result_at_each_epoch(0,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch))]
 
-    k_5 = list(map(add,k_5,calculate_result_at_each_epoch(5,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
-    k_10 = list(map(add, k_10, calculate_result_at_each_epoch(10, top_nn_per_batch, top_nn_labels_per_batch,
-                                                            target_labels_for_current_batch)))
-    k_50 = list(map(add, k_50, calculate_result_at_each_epoch(50, top_nn_per_batch, top_nn_labels_per_batch,
-                                                        target_labels_for_current_batch)))
-    k_100 = list(map(add, k_100, calculate_result_at_each_epoch(100, top_nn_per_batch, top_nn_labels_per_batch,
-                                                        target_labels_for_current_batch)))
+    k_5 = [sum(x) for x in zip(k_5,calculate_result_at_each_epoch(5,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
+    k_10 = [sum(x) for x in zip( k_10, calculate_result_at_each_epoch(10, top_nn_per_batch, top_nn_labels_per_batch,
+                                                            target_labels_for_current_batch))]
+    k_50 = [sum(x) for x in zip(k_50, calculate_result_at_each_epoch(50, top_nn_per_batch, top_nn_labels_per_batch,
+                                                        target_labels_for_current_batch))]
+    k_100 = [sum(x) for x in zip(k_100, calculate_result_at_each_epoch(100, top_nn_per_batch, top_nn_labels_per_batch,
+                                                        target_labels_for_current_batch))]
 
 k_1 =  [x/len(target_labels_for_each_query) for x in k_1]
 k_5 =  [x/len(target_labels_for_each_query) for x in k_5]
