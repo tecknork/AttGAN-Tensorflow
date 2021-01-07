@@ -61,12 +61,12 @@ class Features():
         loader = ImageLoader(None)
         image_feats = []
 
-        for chunk in tqdm.tqdm(utils.chunks(data, 32), total=len(data) // 32):
+        #for chunk in tqdm.tqdm(utils.chunks(data, 32), total=len(data) // 32):
            # files = zip(*chunk)
-            imgs = list(map(loader, chunk))
-            imgs = list(map(self.transform, imgs))
-            feats = self.feat_extractor(torch.stack(imgs, 0).cpu())
-            image_feats.append(feats.data.cpu())
+        imgs = list(map(loader, data))
+        imgs = list(map(self.transform, imgs))
+        feats = self.feat_extractor(torch.stack(imgs, 0).cpu())
+        image_feats.append(feats.data.cpu())
         image_feats = torch.cat(image_feats, 0)
         return image_feats.cpu().detach().numpy()
 
