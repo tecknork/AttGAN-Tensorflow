@@ -59,10 +59,13 @@ print(len(test_imgages_full_path))
 #
 top_nn_labels_per_query = []
 top_nn_per_query = []
-for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 4), total=len(test_imgages_full_path) // 4):
+tile_image_emb = utils.tile_tensor(tf_img_features, 0, 16)
+
+for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 16), total=len(test_imgages_full_path) // 16):
     features = feature_extractor.generate_features_for_imgs(data=chunk)
     tf_features= tf.constant(features)
-    tile_image_emb = utils.tile_tensor(tf_img_features, 0, len(chunk))
+    if len(chunk) != 16:
+        tile_image_emb = utils.tile_tensor(tf_img_features, 0, len(chunk))
     #print(tile_image_emb.get_shape()) #(65*?,300)
     repeat_img_feat = utils.repeat_tensor(tf_features, 0, len(img_features))
    # print(repeat_img_feat.get_shape())

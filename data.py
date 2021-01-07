@@ -38,11 +38,11 @@ ATT_ID = {'ancient': 0, 'barren': 1, 'bent': 2, 'blunt': 3, 'bright': 4, 'broken
           'upright': 102, 'verdant': 103, 'viscous': 104, 'weathered': 105, 'wet': 106, 'whipped': 107,
           'wide': 108, 'wilted': 109, 'windblown': 110, 'winding': 111, 'worn': 112, 'wrinkled': 113,
           'young': 114}
-
-ATT_ID = {'Canvas': 0, 'Cotton': 1, 'Faux.Fur': 2, 'Faux.Leather': 3, 'Full.grain.leather': 4, 'Hair.Calf': 5, 'Leather': 6,
-          'Nubuck': 7, 'Nylon': 8, 'Patent.Leather': 9,
-          'Rubber': 10, 'Satin': 11, 'Sheepskin': 12,
-          'Suede': 13, 'Synthetic': 14, 'Wool': 15}
+#
+# ATT_ID = {'Canvas': 0, 'Cotton': 1, 'Faux.Fur': 2, 'Faux.Leather': 3, 'Full.grain.leather': 4, 'Hair.Calf': 5, 'Leather': 6,
+#           'Nubuck': 7, 'Nylon': 8, 'Patent.Leather': 9,
+#           'Rubber': 10, 'Satin': 11, 'Sheepskin': 12,
+#           'Suede': 13, 'Synthetic': 14, 'Wool': 15}
 
 ID_ATT = {v: k for k, v in ATT_ID.items()}
 
@@ -237,8 +237,8 @@ def make_mitstates_dataset(img_dir,
 class MitStatesDataSet():
 
     def __init__(self,training=True):
-        self.root = "./data/ut-zap50k-original"
-        self.img_path = "./data/ut-zap50k-original/images"
+        self.root = "./data/mit-states-original"
+        self.img_path = "./data/mit-states-original/images"
         self.split = "/compositional-split"
         self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split()
         self.attr2idx = {attr: idx for idx, attr in enumerate(self.attrs)}
@@ -332,16 +332,16 @@ class MitStatesDataSet():
                 # data_i = [image, attr, obj, self.attr2idx[attr], self.obj2idx[obj], self.activation_dict[image],
                 # np.eye(len(self.attrs))[self.attr2idx[attr]]]
 
-                # test_nouns = [
-                #     u'armor', u'bracelet', u'bush', u'camera', u'candy', u'castle',
-                #     u'ceramic', u'cheese', u'clock', u'clothes', u'coffee', u'fan', u'fig',
-                #     u'fish', u'foam', u'forest', u'fruit', u'furniture', u'garden', u'gate',
-                #     u'glass', u'horse', u'island', u'laptop', u'lead', u'lightning',
-                #     u'mirror', u'orange', u'paint', u'persimmon', u'plastic', u'plate',
-                #     u'potato', u'road', u'rubber', u'sand', u'shell', u'sky', u'smoke',
-                #     u'steel', u'stream', u'table', u'tea', u'tomato', u'vacuum', u'wax',
-                #     u'wheel', u'window', u'wool'
-                # ]
+                test_nouns = [
+                    u'armor', u'bracelet', u'bush', u'camera', u'candy', u'castle',
+                    u'ceramic', u'cheese', u'clock', u'clothes', u'coffee', u'fan', u'fig',
+                    u'fish', u'foam', u'forest', u'fruit', u'furniture', u'garden', u'gate',
+                    u'glass', u'horse', u'island', u'laptop', u'lead', u'lightning',
+                    u'mirror', u'orange', u'paint', u'persimmon', u'plastic', u'plate',
+                    u'potato', u'road', u'rubber', u'sand', u'shell', u'sky', u'smoke',
+                    u'steel', u'stream', u'table', u'tea', u'tomato', u'vacuum', u'wax',
+                    u'wheel', u'window', u'wool'
+                ]
 
                 # train_nouns= [
                 #     u'armor',
@@ -368,13 +368,13 @@ class MitStatesDataSet():
                 # train_attr = ['ancient', 'modern', 'moldy', 'blunt', 'bent', 'broken', 'peeled', 'rusty',
                 #               'burnt', 'sliced', 'muddy', 'murky', 'mossy']
 
-                train_attr = ['Canvas', 'Cotton', ]
+               # train_attr = ['Canvas', 'Cotton', ]
 
-                if (attr, obj) in test_pair_set:
+                if obj in test_nouns:
                    # if attr in train_attr:
                         test_data.append(data_i)
                 else:
-                    if attr in train_attr:
+                    #if attr in train_attr:
                         train_data.append(data_i)
 
             #print(train_data)

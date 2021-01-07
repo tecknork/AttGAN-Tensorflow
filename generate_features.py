@@ -33,10 +33,10 @@ class ImageLoader:
 class Features():
 
     def __init__(self):
-        self.root = "./data/ut-zap50k-original"
-        self.img_path = "./data/ut-zap50k-original/images"
-        self.file_path = "./data/ut-zap50k-original/features_new.t7" #all images
-        self.eval_img_path = "./data/ut-zap50k-original/"
+        self.root = "./data/mit-states-original"
+        self.img_path = "./data/mit-states-original/images"
+        self.file_path = "./data/mit-states-original/features_new.t7" #all images
+        self.eval_img_path = "./data/mit-states-original/"
         self.transform = utils.imagenet_transform()
         self.feat_extractor = torchvision.models.resnet18(pretrained=True)
         self.feat_extractor.fc = torch.nn.Sequential()
