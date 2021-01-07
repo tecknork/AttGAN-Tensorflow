@@ -57,7 +57,7 @@ print(tf_img_features)
 test_images_generated = os.listdir(save_dir_eval)
 test_imgages_full_path = [py.join(save_dir_eval,img) for img in test_images_generated]
 print(len(test_imgages_full_path))
-test_imgages_full_path=test_imgages_full_path[0:5000]
+
 #
 top_nn_labels_per_query = []
 top_nn_per_query = []
@@ -81,7 +81,7 @@ def calculate_result_at_each_epoch(k,top_nn_per_query, top_nn_labels_per_query, 
                         # r_a /= len(target_labels_for_each_query)
                         # r_o /= len(target_labels_for_each_query)
 
-                        print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" %(k,r,r_a,r_o))
+                       # print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" %(k,r,r_a,r_o))
                         return [r, r_a, r_o]
 
 
@@ -128,7 +128,6 @@ k_5 =  [x/len(target_labels_for_each_query) for x in k_5]
 k_10 =  [x/len(target_labels_for_each_query) for x in k_10]
 k_50 =  [x/len(target_labels_for_each_query) for x in k_50]
 k_100 =  [x/len(target_labels_for_each_query) for x in k_100]
-print(k_1)
 
 
 
