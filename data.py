@@ -368,7 +368,7 @@ class MitStatesDataSet():
                 # train_attr = ['ancient', 'modern', 'moldy', 'blunt', 'bent', 'broken', 'peeled', 'rusty',
                 #               'burnt', 'sliced', 'muddy', 'murky', 'mossy']
 
-                train_attr = ['Canvas', 'Cotton', ]
+               # train_attr = ['Canvas', 'Cotton', ]
 
                 if (attr, obj) in test_pair_set:
                    # if attr in train_attr:
