@@ -1,6 +1,7 @@
 import torch
 import pylib as py
 import tqdm
+import numpy as np
 import torchvision
 from torchvision.transforms import transforms
 import utils
@@ -35,6 +36,7 @@ class Features():
         self.root = "./data/ut-zap50k-original"
         self.img_path = "./data/ut-zap50k-original/images"
         self.file_path = "./data/ut-zap50k-original/features_new.t7" #all images
+        self.eval_img_path = "./data/ut-zap50k-original/"
         self.transform = utils.imagenet_transform()
         self.feat_extractor = torchvision.models.resnet18(pretrained=True)
         self.feat_extractor.fc = torch.nn.Sequential()
@@ -47,23 +49,43 @@ class Features():
         self.feat_dim = activation_data['features'].size(1)
         print(self.feat_dim)
         for data in dataset:
-            activations.append(self.activation_dict[data[0]])
+            activations.append(self.activation_dict[data[0]].cpu().detach().numpy())
 
-        return activations
+        return np.array(activations)
+       # return [activation.cpu().detach().numpy() for activation in activations]
 
 
 
     def generate_features_for_imgs(self,data):
 
+        loader = ImageLoader(None)
         image_feats = []
 
         for chunk in tqdm.tqdm(utils.chunks(data, 32), total=len(data) // 32):
-            imgs = zip(*chunk)
+           # files = zip(*chunk)
+            imgs = list(map(loader, chunk))
             imgs = list(map(self.transform, imgs))
             feats = self.feat_extractor(torch.stack(imgs, 0).cpu())
             image_feats.append(feats.data.cpu())
         image_feats = torch.cat(image_feats, 0)
-        return image_feats
+        return image_feats.cpu().detach().numpy()
+
+
+    # def generate_features_for_imgs(self,files):
+    #
+    #     loader = ImageLoader(None)
+    #     image_feats = []
+    #
+    #     #for chunk in tqdm.tqdm(utils.chunks(data, 32), total=len(data) // 32):
+    #    # files = zip(*files)
+    #     imgs = list(map(loader, files))
+    #     imgs = list(map(self.transform, imgs))
+    #     feats = self.feat_extractor(torch.stack(imgs, 0).cpu())
+    #     image_feats.append(feats.data.cpu())
+    #     image_feats = torch.cat(image_feats, 0)
+    #     return image_feats
+
+
 
 class GenerateFeatures():
 

@@ -95,12 +95,12 @@ def sample_graph():
     save_dir_reconstructed = './output/%s/eval_testing_reconstructed_%s' % (args.experiment_name, '{:g}'.format(args.test_int))
     py.mkdir(save_dir_reconstructed)
 
-    def generate_image_for_eval(save_dir_eval,save_dir_reconstructed,cnt,img):
+    def generate_image_for_eval(save_dir_eval,save_dir_reconstructed,cnt,img,i):
         #i == 0 - reconstructed
         x_opt_list = [img]
         sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
         sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
-        for i, s in enumerate(sample):
+        for _, s in enumerate(sample):
             cnt += 1
             if i>0:
                 #modified img with a attribute with b
@@ -132,7 +132,7 @@ def sample_graph():
                     b__ipt[..., i - 1] = b__ipt[..., i - 1] * args.test_int
                 #b__ipt = b_ipt * 2 - 1
                 x_opt = sess.run(x, feed_dict={xa: xa_ipt, b_: b__ipt})
-                generate_image_for_eval(save_dir_eval,save_dir_reconstructed,cnt,x_opt)
+                generate_image_for_eval(save_dir_eval,save_dir_reconstructed,cnt,i)
                 x_opt_list.append(x_opt)
 
             sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
