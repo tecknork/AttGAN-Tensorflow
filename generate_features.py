@@ -90,8 +90,8 @@ class Features():
 class GenerateFeatures():
 
     def __init__(self):
-        self.root = "./data/ut-zap50k-original"
-        self.img_path = "./data/ut-zap50k-original/images"
+        self.root = "./data/mit-states-original"
+        self.img_path = "./data/mit-states-original/images"
         self.split = "/compositional-split"
         self.out_file = py.join(self.root,"features_new.t7")
         self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split()
