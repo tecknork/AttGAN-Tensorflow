@@ -111,22 +111,22 @@ for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 16), total=len(test_
     top_nn_per_batch = [ data for data in top_nn]
     top_nn_labels_per_batch=[ get_ground_label_for_image_ids(img_deck,data) for data in top_nn]
     current_start = current_start + len(chunk)
-    k_0 = list(map(add,k_0,calculate_result_at_each_epoch(0,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
-    k_5 = list(map(add,k_0,calculate_result_at_each_epoch(5,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
-    k_10 = list(map(add, k_0, calculate_result_at_each_epoch(10, top_nn_per_batch, top_nn_labels_per_batch,
+    k_1 = list(map(add,k_1,calculate_result_at_each_epoch(0,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
+    k_5 = list(map(add,k_5,calculate_result_at_each_epoch(5,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch)))
+    k_10 = list(map(add, k_10, calculate_result_at_each_epoch(10, top_nn_per_batch, top_nn_labels_per_batch,
                                                             target_labels_for_current_batch)))
-    k_50 = list(map(add, k_0, calculate_result_at_each_epoch(50, top_nn_per_batch, top_nn_labels_per_batch,
+    k_50 = list(map(add, k_50, calculate_result_at_each_epoch(50, top_nn_per_batch, top_nn_labels_per_batch,
                                                         target_labels_for_current_batch)))
-    k_100 = list(map(add, k_0, calculate_result_at_each_epoch(100, top_nn_per_batch, top_nn_labels_per_batch,
+    k_100 = list(map(add, k_100, calculate_result_at_each_epoch(100, top_nn_per_batch, top_nn_labels_per_batch,
                                                         target_labels_for_current_batch)))
 
-k_0 /=  len(target_labels_for_each_query)
+k_1 /=  len(target_labels_for_each_query)
 k_5 /= len(target_labels_for_each_query)
 k_10 /= len(target_labels_for_each_query)
 k_50 /= len(target_labels_for_each_query)
 k_100 /= len(target_labels_for_each_query)
 
-print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (0, k_0[0], k_0[1], k_0[2]))
+print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (0, k_1[0], k_1[1], k_1[2]))
 print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (5, k_5[0], k_5[1], k_5[2]))
 print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (10, k_10[0], k_10[1], k_10[2]))
 print("k:%d recall_compositon:%s recall_attribue:%s recall_object:%s" % (50, k_50[0], k_50[1], k_50[2]))
