@@ -112,7 +112,7 @@ for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 64), total=len(test_
     top_nn_per_batch = [ data for data in top_nn]
     top_nn_labels_per_batch=[ get_ground_label_for_image_ids(img_deck,data) for data in top_nn]
     current_start = current_start + len(chunk)
-    k_1 = [sum(x) for x in zip(k_1,calculate_result_at_each_epoch(0,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch))]
+    k_1 = [sum(x) for x in zip(k_1,calculate_result_at_each_epoch(1,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch))]
 
     k_5 = [sum(x) for x in zip(k_5,calculate_result_at_each_epoch(5,top_nn_per_batch,top_nn_labels_per_batch,target_labels_for_current_batch))]
 
