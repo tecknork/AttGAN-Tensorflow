@@ -22,14 +22,14 @@ args_ = py.args()
 output_dir = py.join('./output', args_.experiment_name)
 
 # save settings
-args = py.args_from_yaml(py.join(output_dir, 'settings.yml'))
-args.__dict__.update(args_.__dict__)
+# args = py.args_from_yaml(py.join(output_dir, 'settings.yml'))
+# args.__dict__.update(args_.__dict__)
 
 save_dir_eval = py.join(output_dir,'eval_testing_2')
 save_dir_reconstructed = py.join(output_dir,'eval_testing_reconstructed_2')
 
 # others
-n_atts = len(args.att_names)
+#n_atts = len(args.att_names)
 
 sess = tl.session()
 sess.__enter__()  # make default

@@ -371,7 +371,7 @@ class MitStatesDataSet():
                 train_attr = ['Canvas', 'Cotton', ]
 
                 if (attr, obj) in test_pair_set:
-                    if attr in train_attr:
+                   # if attr in train_attr:
                         test_data.append(data_i)
                 else:
                     if attr in train_attr:
