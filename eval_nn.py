@@ -60,7 +60,7 @@ print(len(test_imgages_full_path))
 #
 top_nn_labels_per_query = []
 top_nn_per_query = []
-tile_image_emb = utils.tile_tensor(tf_img_features, 0, 16)
+tile_image_emb = utils.tile_tensor(tf_img_features, 0, 64)
 
 
 
