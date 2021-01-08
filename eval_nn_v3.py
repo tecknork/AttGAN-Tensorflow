@@ -49,7 +49,7 @@ test_dataset_query = mit_states.get_data()
 img_deck ,_= mit_states.get_images(training=False)
 #attr,obj
 target_labels_for_each_query = [(data[5],data[7]) for data in test_dataset_query]
-target_labels_for_each_query = target_labels_for_each_query[1:1000]
+#target_labels_for_each_query = target_labels_for_each_query[1:1000]
 #
 feature_extractor = Features()
 img_features = feature_extractor.get_dataset_features_V2()
@@ -62,7 +62,7 @@ print(tf_img_features)
 # print(len(test_imgages_full_path))
 
 test_query_img_features = feature_extractor.get_dataset_features_V3(out_file_eval)
-test_query_img_features= test_query_img_features[1:1000]
+#test_query_img_features= test_query_img_features[1:1000]
 #tf_img_features = tf.constant(img_features)
 
 
