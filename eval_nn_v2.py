@@ -51,7 +51,7 @@ target_labels_for_each_query = [(data[5],data[7]) for data in test_dataset_query
 target_labels_for_each_query = target_labels_for_each_query[1:1000]
 #
 feature_extractor = Features()
-img_features = feature_extractor.get_dataset_features(img_deck)
+img_features = feature_extractor.get_dataset_features_V2()
 tf_img_features = tf.constant(img_features)
 print(tf_img_features)
 test_images_generated = os.listdir(save_dir_eval)
