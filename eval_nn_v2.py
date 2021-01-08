@@ -12,7 +12,7 @@ import data
 import module
 import utils
 from operator import add
-
+import re
 
 py.arg('--experiment_name', default='AttGAN_128_UT_ZAPPOS_Eval_small_1')
 args_ = py.args()
