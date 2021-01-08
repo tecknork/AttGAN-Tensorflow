@@ -484,7 +484,7 @@ class MitStatesDataSet():
 
           def map_fn_(path,attr,obj):
               load_size =256
-              crop_size =256
+              crop_size =128
               img = tf.io.read_file(path)
               img = tf.image.decode_png(img, 3)
               img = tf.image.resize(img, [load_size, load_size])
