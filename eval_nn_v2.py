@@ -56,9 +56,10 @@ tf_img_features = tf.constant(img_features)
 print(tf_img_features)
 test_images_generated = os.listdir(save_dir_reconstructed)
 test_imgages_full_path = [py.join(save_dir_reconstructed,img) for img in test_images_generated]
+test_imgages_full_path = test_imgages_full_path.sort()
 test_imgages_full_path = test_imgages_full_path[1:1000]
 print(len(test_imgages_full_path))
-print(test_imgages_full_path[1:100])
+[print(img) for img in test_imgages_full_path[1:100]]
 #
 top_nn_labels_per_query = []
 top_nn_per_query = []
