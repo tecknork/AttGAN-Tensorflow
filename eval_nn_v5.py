@@ -1,18 +1,10 @@
 import os
 from data import MitStatesDataSet
-from collections import defaultdict
-import imlib as im
+
 import numpy as np
 import pylib as py
-import tensorflow as tf
-import tflib as tl
-import tqdm
+
 from generate_features import Features
-import data
-import module
-import utils
-from operator import add
-import re
 
 py.arg('--experiment_name', default='AttGAN_128_MIT_STATES_FINAL')
 args_ = py.args()
@@ -64,12 +56,12 @@ print(img_features.shape)
 sims = test_query_img_features.dot(img_features.T)
 # for i, t in enumerate(test_queries):
 #     sims[i, t['source_img_id']] = -10e10  # remove query image
-nn_result = [np.argsort(-sims[i, :])[:110] for i in range(sims.shape[0])]
-print(len(nn_result))
-print(len(nn_result[0]))
-print(nn_result[0])
+nn_result_labels = [np.argsort(-sims[i, :])[:110] for i in range(sims.shape[0])]
+print(len(nn_result_labels))
+print(len(nn_result_labels[0]))
+# print(nn_result[0])
 
-nn_result_labels = [get_ground_label_for_image_ids(data) for data in nn_result]
+nn_result_labels = [get_ground_label_for_image_ids(data) for data in nn_result_labels]
 
 # compute recalls
 out = []
@@ -79,22 +71,23 @@ for k in [1, 5, 10, 50, 100]:
     for target_query, nns in zip(target_labels_for_each_query, nn_result_labels):
         if target_query in [x[0] for x in nns[:k]]:
             r += 1
-    r /= len(nn_result)
+    r /= len(nn_result_labels)
     out += [('recall_top' + str(k) + '_correct_composition', r)]
 
 
     r = 0.0
     for target_query, nns in zip(target_labels_for_each_query,nn_result_labels):
-            if target_query[0] in [x[0] for x in nns[:k]]:
+            if target_query[0] in nns[:k]:
                 r += 1
-    r /= len(nn_result)
+    r /= len(nn_result_labels)
     out += [('recall_top' + str(k) + '_correct_adj', r)]
 
+    r = 0.0
     r = 0.0
     for target_query, nns in zip(target_labels_for_each_query, nn_result_labels):
             if target_query[1] in [x[1] for x in nns[:k]]:
                 r += 1
-    r /= len(nn_result)
+    r /= len(nn_result_labels)
     out += [('recall_top' + str(k) + '_correct_noun', r)]
 
 print(out)
