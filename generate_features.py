@@ -61,8 +61,8 @@ class Features():
         #self.activation_dict = dict(zip(activation_data['files'], activation_data['features']))
         #self.feat_dim = activation_data['features'].size(1)
         #print(self.feat_dim)
-        for data in activation_data:
-            activations.append(data['features'].cpu().detach().numpy())
+        for data in activation_data['features']:
+            activations.append(data.cpu().detach().numpy())
 
         return np.array(activations)
        # return [activation.cpu().detach().numpy() for activation in activations]
