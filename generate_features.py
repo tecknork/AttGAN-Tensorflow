@@ -67,6 +67,17 @@ class Features():
         return np.array(activations)
        # return [activation.cpu().detach().numpy() for activation in activations]
 
+    def get_dataset_features_V3(self,path):
+        #path = "./data/mit-states-original/features_test_compose_AE.t7"  # all images
+        activation_data = torch.load(path)
+        activations = []
+        # self.activation_dict = dict(zip(activation_data['files'], activation_data['features']))
+        # self.feat_dim = activation_data['features'].size(1)
+        # print(self.feat_dim)
+        for data in activation_data['features']:
+            activations.append(data.cpu().detach().numpy())
+
+        return np.array(activations)
 
 
     def generate_features_for_imgs(self,data):

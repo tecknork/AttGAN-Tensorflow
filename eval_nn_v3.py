@@ -32,6 +32,9 @@ out_file_reconstructed = py.join(output_dir, 'eval_testing_reconstructed_2.t7')
 # others
 #n_atts = len(args.att_names)
 
+sess = tl.session()
+sess.__enter__()  # make default
+
 
 def get_ground_label_for_image_ids(dataset,image_ids):
     lables_for_batch = []
@@ -52,11 +55,15 @@ feature_extractor = Features()
 img_features = feature_extractor.get_dataset_features_V2()
 tf_img_features = tf.constant(img_features)
 print(tf_img_features)
-test_images_generated = os.listdir(save_dir_eval)
-test_images_generated.sort(key=lambda f: int(re.sub('\D', '', f)))
-test_imgages_full_path = [py.join(save_dir_eval,img) for img in test_images_generated]
-test_imgages_full_path = test_imgages_full_path[1:1000]
+# test_images_generated = os.listdir(save_dir_eval)
+# test_images_generated.sort(key=lambda f: int(re.sub('\D', '', f)))
+# test_imgages_full_path = [py.join(save_dir_eval,img) for img in test_images_generated]
+# test_imgages_full_path = test_imgages_full_path[1:1000]
 # print(len(test_imgages_full_path))
+
+test_query_img_features = feature_extractor.get_dataset_features_V3(out_file_eval)
+test_query_img_features= test_query_img_features[1:1000]
+#tf_img_features = tf.constant(img_features)
 
 
 top_nn_labels_per_query = []
@@ -91,11 +98,11 @@ k_10 = [0,0,0]
 k_50 = [0,0,0]
 k_100 = [0,0,0]
 current_start = 0
-for chunk in tqdm.tqdm(utils.chunks(test_imgages_full_path, 32), total=len(test_imgages_full_path) // 32):
+for chunk in tqdm.tqdm(utils.chunks(test_query_img_features, 32), total=len(test_query_img_features) // 32):
     target_labels_for_current_batch = target_labels_for_each_query[current_start:current_start+len(chunk)]
-    features = feature_extractor.generate_features_for_imgs(data=chunk)
+    #features = feature_extractor.generate_features_for_imgs(data=chunk)
 
-    tf_features= tf.constant(features)
+    tf_features= tf.constant(chunk)
     if len(chunk) != 32:
         tile_image_emb = utils.tile_tensor(tf_img_features, 0, len(chunk))
     #print(tile_image_emb.get_shape()) #(65*?,300)
