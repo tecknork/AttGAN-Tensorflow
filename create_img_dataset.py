@@ -28,32 +28,32 @@ sess.__enter__()  # make default
 # args = py.args_from_yaml(py.join(output_dir, 'settings.yml'))
 # args.__dict__.update(args_.__dict__)
 
-# save_dir_eval ='./data/mit-states-original/test_imgs_compose_AE'
-# #save_dir_reconstructed = py.join(output_dir,'eval_testing_reconstructed_2')
-# py.mkdir(save_dir_eval)
-# # others
-#
-# data_set = MitStatesDataSet(training=False)
-# test_data = data_set.test_data
-# img_deck,len_img_deck = data_set.get_image_dataset(test_data)
-# test_iter = img_deck.make_one_shot_iterator()
-#
-# test_next = test_iter.get_next()
-# cnt = 0;
-# for _ in tqdm.trange(len_img_deck):
-#     xa,_,_ = sess.run(test_next)
-#     x_opt_list = [xa]
-#     sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
-#     sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
-#     for _, s in enumerate(sample):
-#         cnt += 1
-#         # modified img with a attribute with b
-#         im.imwrite(s, '%s/%d.jpg' % (save_dir_eval, cnt))
-#
-# print(len(test_data))
-# print(len_img_deck)
-#
-#
+save_dir_eval ='./data/mit-states-original/test_imgs_compose_AE'
+#save_dir_reconstructed = py.join(output_dir,'eval_testing_reconstructed_2')
+py.mkdir(save_dir_eval)
+# others
+
+data_set = MitStatesDataSet(training=False)
+test_data = data_set.test_data
+img_deck,len_img_deck = data_set.get_image_dataset(test_data)
+test_iter = img_deck.make_one_shot_iterator()
+
+test_next = test_iter.get_next()
+cnt = 0;
+for _ in tqdm.trange(len_img_deck):
+    xa,_,_ = sess.run(test_next)
+    x_opt_list = [xa]
+    sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
+    sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
+    for _, s in enumerate(sample):
+        cnt += 1
+        # modified img with a attribute with b
+        im.imwrite(s, '%s/%d.jpg' % (save_dir_eval, cnt))
+
+print(len(test_data))
+print(len_img_deck)
+
+
 
 
 class GenerateFeatures():
