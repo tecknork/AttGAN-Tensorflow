@@ -69,7 +69,7 @@ out = []
 for k in [1, 5, 10, 50, 100]:
     r = 0.0
     for target_query, nns in zip(target_labels_for_each_query, nn_result_labels):
-        if target_query in [x[0] for x in nns[:k]]:
+        if target_query in nns[:k]:
             r += 1
     r /= len(nn_result_labels)
     out += [('recall_top' + str(k) + '_correct_composition', r)]
@@ -77,7 +77,7 @@ for k in [1, 5, 10, 50, 100]:
 
     r = 0.0
     for target_query, nns in zip(target_labels_for_each_query,nn_result_labels):
-            if target_query[0] in nns[:k]:
+            if target_query[0] in [x[0] for x in nns[:k]]:
                 r += 1
     r /= len(nn_result_labels)
     out += [('recall_top' + str(k) + '_correct_adj', r)]
