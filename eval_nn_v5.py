@@ -24,13 +24,7 @@ out_file_reconstructed = py.join(output_dir, 'eval_testing_reconstructed_2.t7')
 
 
 
-def get_ground_label_for_image_ids(dataset,image_ids):
-    lables_for_batch = []
-    for image_id in image_ids:
-        image_data = dataset[image_id]
-        #attr,obj
-        lables_for_batch.append((image_data[3], image_data[4]))
-    return lables_for_batch
+
 
 mit_states = MitStatesDataSet(training=False)
 test_dataset_query = mit_states.get_data()
@@ -38,12 +32,21 @@ img_deck ,_= mit_states.get_images(training=False)
 #attr,obj
 target_labels_for_each_query = [(data[5],data[7]) for data in test_dataset_query]
 
+
+
 feature_extractor = Features()
 img_features = feature_extractor.get_dataset_features_V2()
 #tf_img_features = np.concatenate(img_features)
 
 print(img_features.shape)
 
+def get_ground_label_for_image_ids(image_ids):
+    lables_for_batch = []
+    for image_id in image_ids:
+        image_data = img_deck[image_id]
+        #attr,obj
+        lables_for_batch.append((image_data[3], image_data[4]))
+    return lables_for_batch
 
 test_query_img_features = feature_extractor.get_dataset_features_V3(out_file_eval)
 #test_query_img_features = test_query_img_features[0:1000]
@@ -66,7 +69,7 @@ print(len(nn_result))
 print(len(nn_result[0]))
 print(nn_result[0])
 
-nn_result_labels = [get_ground_label_for_image_ids(img_deck,data) for data in nn_result]
+nn_result_labels = [get_ground_label_for_image_ids(data) for data in nn_result]
 
 # compute recalls
 out = []
