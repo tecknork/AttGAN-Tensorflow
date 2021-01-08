@@ -15,7 +15,7 @@ import module
 import utils
 from generate_features import  ImageLoader
 from operator import add
-
+import re
 
 
 
@@ -65,6 +65,7 @@ class GenerateFeatures():
         save_dir_eval = './data/mit-states-original/test_imgs_compose_AE'
         test_images_generated = os.listdir(save_dir_eval)
         test_imgages_full_path = [py.join(save_dir_eval, img) for img in test_images_generated]
+        test_imgages_full_path.sort(key=lambda f: int(re.sub('\D', '', f)))
         return test_imgages_full_path
 
     def generate_features(self, feat_extractor):
