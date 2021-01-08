@@ -12,7 +12,7 @@ import data
 import module
 import utils
 from operator import add
-
+import re
 
 py.arg('--experiment_name', default='AttGAN_128_UT_ZAPPOS_Eval_small_1')
 args_ = py.args()
@@ -57,7 +57,7 @@ tf_img_features = tf.constant(img_features)
 print(tf_img_features)
 test_images_generated = os.listdir(save_dir_eval)
 test_imgages_full_path = [py.join(save_dir_eval,img) for img in test_images_generated]
-
+test_imgages_full_path.sort(key=lambda f: int(re.sub('\D', '', f)))
 test_imgages_full_path = test_imgages_full_path[1:1000]
 print(len(test_imgages_full_path))
 #
