@@ -56,7 +56,7 @@ print(img_features.shape)
 sims = test_query_img_features.dot(img_features.T)
 # for i, t in enumerate(test_queries):
 #     sims[i, t['source_img_id']] = -10e10  # remove query image
-nn_result_labels = [np.argsort(-sims[i, :])[:160] for i in range(sims.shape[0])]
+nn_result_labels = [np.argsort(-sims[i, :])[:260] for i in range(sims.shape[0])]
 print(len(nn_result_labels))
 print(len(nn_result_labels[0]))
 # print(nn_result[0])
@@ -66,7 +66,7 @@ nn_result_labels = [get_ground_label_for_image_ids(data) for data in nn_result_l
 # compute recalls
 out = []
 #nn_result = [[all_captions[nn] for nn in nns] for nns in nn_result]
-for k in [1, 5, 10, 50, 100,110,150]:
+for k in [1, 5, 10, 50, 100,110,150,200,250]:
     r = 0.0
     for target_query, nns in zip(target_labels_for_each_query, nn_result_labels):
         if target_query in nns[:k]:
