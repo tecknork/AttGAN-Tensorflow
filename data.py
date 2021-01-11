@@ -531,3 +531,28 @@ class MitStatesDataSet():
         # dataset = dataset.map(map_fn_, num_parallel_calls=n_map_threads)
         # dataset = dataset.batch(2)
         # return dataset, len(images_path) // 2
+
+    def get_count_for_each_attr(self):
+        img_per_attr = {}
+        for attr in self.attrs:
+            img_per_attr[attr] = sum(data[1] == attr for data in self.test_data)
+
+        img_per_attr=dict(sorted(img_per_attr.items(), key=lambda item: item[1],reverse=True))
+        return img_per_attr
+
+    def get_count_for_each_obj(self):
+        img_per_attr = {}
+        for obj in self.objs:
+            img_per_attr[obj] = sum(data[2] == obj for data in self.test_data)
+
+        img_per_attr=dict(sorted(img_per_attr.items(), key=lambda item: item[1],reverse=True))
+        return img_per_attr
+
+
+    def get_count_for_each_pair(self):
+        img_per_attr = {}
+        for pair in self.pairs:
+            img_per_attr[pair] = sum(data[1]==pair[0] and data[2] == pair[1] for data in self.test_data)
+
+        img_per_attr=dict(sorted(img_per_attr.items(), key=lambda item: item[1],reverse=True))
+        return img_per_attr
