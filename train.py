@@ -214,22 +214,23 @@ def G_train_graph():
    # xb__loss_rec = tf.losses.absolute_difference(xb_ref, xb_) #perpetual loss
     reg_loss = tf.reduce_sum(Genc.func.reg_losses + Gdec.func.reg_losses)
 
-    # decoder_loss = (
-    #         xb__loss_att * args.g_attribute_loss_weight +
-    #         reg_loss)
-    #
-    # encoder_loss = (xb__loss_gan +
-    #         xa__loss_rec * args.g_reconstruction_loss_weight +
-    #         #  xb__loss_rec * args.g_reconstruction_loss_weight +
-    #         reg_loss)
-    loss = (xb__loss_gan +
+    decoder_loss = (
+            xb__loss_gan +
             xb__loss_att * args.g_attribute_loss_weight +
-            xa__loss_rec * args.g_reconstruction_loss_weight +
             reg_loss)
+
+    encoder_loss = (xb__loss_gan +
+            xa__loss_rec * args.g_reconstruction_loss_weight +
+            #  xb__loss_rec * args.g_reconstruction_loss_weight +
+            reg_loss)
+    # loss = (xb__loss_gan +
+    #         xb__loss_att * args.g_attribute_loss_weight +
+    #         xa__loss_rec * args.g_reconstruction_loss_weight +
+    #         reg_loss)
     # optim
     step_cnt, _ = tl.counter()
-    step = tf.train.AdamOptimizer(lr, beta1=args.beta_1).minimize(loss, global_step=step_cnt, var_list=Genc.func.trainable_variables)
-    dg_step = tf.train.AdamOptimizer(lr, beta1=args.beta_1).minimize(loss, global_step=step_cnt,
+    step = tf.train.AdamOptimizer(lr, beta1=args.beta_1).minimize(encoder_loss, global_step=step_cnt, var_list=Genc.func.trainable_variables)
+    dg_step = tf.train.AdamOptimizer(lr, beta1=args.beta_1).minimize(decoder_loss, global_step=step_cnt,
                                                                   var_list= Gdec.func.trainable_variables)
 
     # summary
