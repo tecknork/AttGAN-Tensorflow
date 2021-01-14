@@ -17,30 +17,33 @@ import module
 
 default_att_names = ['Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows', 'Eyeglasses',
                      'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young']
-
-default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
-                           'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered', 'coiled',
-                           'cooked', 'cored', 'cracked', 'creased', 'crinkled', 'crumpled', 'crushed', 'curved', 'cut',
-                           'damp', 'dark', 'deflated', 'dented', 'diced', 'dirty', 'draped', 'dry', 'dull', 'empty',
-                           'engraved', 'eroded', 'fallen', 'filled', 'foggy', 'folded', 'frayed', 'fresh', 'frozen',
-                           'full', 'grimy', 'heavy', 'huge', 'inflated', 'large', 'lightweight', 'loose', 'mashed',
-                           'melted', 'modern', 'moldy', 'molten', 'mossy', 'muddy', 'murky', 'narrow', 'new', 'old',
-                           'open', 'painted', 'peeled', 'pierced', 'pressed', 'pureed', 'raw', 'ripe', 'ripped', 'rough',
-                           'ruffled', 'runny', 'rusty', 'scratched', 'sharp', 'shattered', 'shiny', 'short', 'sliced',
-                           'small', 'smooth', 'spilled', 'splintered', 'squished', 'standing', 'steaming', 'straight',
-                           'sunny', 'tall', 'thawed', 'thick', 'thin', 'tight', 'tiny', 'toppled', 'torn', 'unpainted',
-                           'unripe', 'upright', 'verdant', 'viscous', 'weathered', 'wet', 'whipped',
-                           'wide', 'wilted', 'windblown', 'winding', 'worn', 'wrinkled', 'young']
+#
+# default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
+#                            'burnt', 'caramelized', 'chipped', 'clean', 'clear', 'closed', 'cloudy', 'cluttered', 'coiled',
+#                            'cooked', 'cored', 'cracked', 'creased', 'crinkled', 'crumpled', 'crushed', 'curved', 'cut',
+#                            'damp', 'dark', 'deflated', 'dented', 'diced', 'dirty', 'draped', 'dry', 'dull', 'empty',
+#                            'engraved', 'eroded', 'fallen', 'filled', 'foggy', 'folded', 'frayed', 'fresh', 'frozen',
+#                            'full', 'grimy', 'heavy', 'huge', 'inflated', 'large', 'lightweight', 'loose', 'mashed',
+#                            'melted', 'modern', 'moldy', 'molten', 'mossy', 'muddy', 'murky', 'narrow', 'new', 'old',
+#                            'open', 'painted', 'peeled', 'pierced', 'pressed', 'pureed', 'raw', 'ripe', 'ripped', 'rough',
+#                            'ruffled', 'runny', 'rusty', 'scratched', 'sharp', 'shattered', 'shiny', 'short', 'sliced',
+#                            'small', 'smooth', 'spilled', 'splintered', 'squished', 'standing', 'steaming', 'straight',
+#                            'sunny', 'tall', 'thawed', 'thick', 'thin', 'tight', 'tiny', 'toppled', 'torn', 'unpainted',
+#                            'unripe', 'upright', 'verdant', 'viscous', 'weathered', 'wet', 'whipped',
+#                            'wide', 'wilted', 'windblown', 'winding', 'worn', 'wrinkled', 'young']
 #
 # default_att_names = ['Canvas', 'Cotton', 'Faux.Fur', 'Faux.Leather', 'Full.grain.leather', 'Hair.Calf', 'Leather',
 #                      'Nubuck', 'Nylon', 'Patent.Leather', 'Rubber', 'Satin', 'Sheepskin', 'Suede', 'Synthetic', 'Wool']
+default_att_names = ['blue', 'brown', 'cyan', 'gray', 'green', 'purple', 'red', 'yellow']
 
 # default_att_names = ['Canvas', 'Cotton', 'Faux.Fur', 'Hair.Calf', 'Leather',
 #                      'Nubuck', 'Nylon','Rubber', 'Sheepskin', 'Wool']
 # default_att_names = ['ancient', 'barren', 'bent', 'blunt', 'bright', 'broken', 'browned', 'brushed',
 #                           'burnt', 'caramelized', 'chipped', 'clean', 'clear']
+
+
 py.arg('--att_names', choices=data.ATT_ID.keys(), nargs='+', default=default_att_names)
-py.arg('--n_obj',type=int, default=245)
+py.arg('--n_obj',type=int, default=3)
 py.arg('--img_dir', default='./data/mit-states-original/images')
 py.arg('--train_label_path', default='./data/mit-states-original/train_composeAE_AttGAN.txt')
 py.arg('--val_label_path',default='./data/mit-states-original/train_composeAE_AttGAN.txt')
@@ -118,7 +121,8 @@ def D_train_graph():
     # placeholders & inputs
     lr = tf.placeholder(dtype=tf.float32, shape=[])
     #xa, a_x, b, attr, obj, obj_id, neg_attr, xb_ref = train_iter.get_next()
-    xa, a , b_a , _, _, o,_,xb_ref = train_iter.get_next()
+    xa, a , b_a , _, _, o,_ = train_iter.get_next()
+  #  xa, a, b_a, _, _, o, _, xb_ref = train_iter.get_next()
 
     a = tf.one_hot(a,depth=n_atts)
 
@@ -186,7 +190,7 @@ def G_train_graph():
     lr = tf.placeholder(dtype=tf.float32, shape=[])
     # xa, a_x, b, attr, obj, obj_id, neg_attr, xb_ref = train_iter.get_next()
 
-    xa, a , b_a ,attr, obj, o, _ , xb_ref= train_iter.get_next()
+    xa, a , b_a ,attr, obj, o, _ = train_iter.get_next()
 
 
     a = tf.one_hot(a, depth=n_atts)
@@ -211,27 +215,27 @@ def G_train_graph():
     xb__loss_gan = g_loss_fn(xb__logit_gan)
     xb__loss_att = tf.losses.sigmoid_cross_entropy(b, xb__logit_att)
     xa__loss_rec = tf.losses.absolute_difference(xa, xa_)
-    xb__loss_rec = tf.losses.absolute_difference(xb_ref, xb_) #perpetual loss
+    #xb__loss_rec = tf.losses.absolute_difference(xb_ref, xb_) #perpetual loss
     reg_loss = tf.reduce_sum(Genc.func.reg_losses + Gdec.func.reg_losses)
 
-    decoder_loss = (
-            xb__loss_gan +
-            xb__loss_att * args.g_attribute_loss_weight +
-            xb__loss_rec * args.g_reconstruction_loss_weight +
-            reg_loss)
-
-    encoder_loss = (xb__loss_gan +
-                    xb__loss_att * args.g_attribute_loss_weight +
-            xa__loss_rec * args.g_reconstruction_loss_weight +
-            reg_loss)
-    # loss = (xb__loss_gan +
+    # decoder_loss = (
+    #         xb__loss_gan +
     #         xb__loss_att * args.g_attribute_loss_weight +
+    #         #xb__loss_rec * args.g_reconstruction_loss_weight +
+    #         reg_loss)
+    #
+    # encoder_loss = (xb__loss_gan +
+    #                 xb__loss_att * args.g_attribute_loss_weight +
     #         xa__loss_rec * args.g_reconstruction_loss_weight +
     #         reg_loss)
+    loss = (xb__loss_gan +
+            xb__loss_att * args.g_attribute_loss_weight +
+            xa__loss_rec * args.g_reconstruction_loss_weight +
+            reg_loss)
     # optim
     step_cnt, _ = tl.counter()
-    step = tf.train.AdamOptimizer(lr, beta1=args.beta_1).minimize(encoder_loss, global_step=step_cnt, var_list=Genc.func.trainable_variables)
-    dg_step = tf.train.AdamOptimizer(lr, beta1=args.beta_1).minimize(decoder_loss, global_step=step_cnt,
+    step = tf.train.AdamOptimizer(lr, beta1=args.beta_1).minimize(loss, global_step=step_cnt, var_list=Genc.func.trainable_variables)
+    dg_step = tf.train.AdamOptimizer(lr, beta1=args.beta_1).minimize(loss, global_step=step_cnt,
                                                                   var_list= Gdec.func.trainable_variables)
 
     # summary
@@ -287,7 +291,7 @@ def sample_graph():
     def run(epoch, iter):
         # data for sampling
         #xa, a_x, b, attr, obj, obj_id, neg_attr = val_iter.get_next()
-        xa_ipt, a, b,attr, obj, o,neg_attr,xb_ref = sess.run(val_next)
+        xa_ipt, a, b,attr, obj, o,neg_attr = sess.run(val_next)
 
         a_ipt = np.eye(n_atts)[a]  # tf.one_hot(a_ipt, depth=n_atts)
 
@@ -298,7 +302,7 @@ def sample_graph():
         #         tmp =tf.one_hot(attr,depth=n_atts)
         #         b_ipt_list.append(tmp)
 
-        x_opt_list = [xa_ipt,xb_ref]
+        x_opt_list = [xa_ipt]
         for i, b_ipt in enumerate(b_ipt_list):
             tmp = np.array(b_ipt, copy=True)
             b__ipt = (tmp * 2 - 1).astype(np.float32)

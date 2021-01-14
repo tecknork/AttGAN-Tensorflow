@@ -3,6 +3,7 @@ import pylib as py
 import torch, torchvision
 import tensorflow as tf
 import tflib as tl
+import pickle
 from utils import pad
 
 # ATT_ID = {'5_o_Clock_Shadow': 0, 'Arched_Eyebrows': 1, 'Attractive': 2,
@@ -147,8 +148,8 @@ def make_mitstates_dataset(img_dir,
 
 
 
-        mit_states = MitStatesDataSet(training)
-        traindata = mit_states.get_data()
+        mit_states = AoCelvrDataSet()
+        traindata = mit_states.get_data(training)
 
         #img_deck,len_img_deck = mit_states.get_images(training) #images_dataset
         img_paths = np.array([data[0] for data in traindata])
@@ -159,7 +160,7 @@ def make_mitstates_dataset(img_dir,
         obj_id = np.array([data[4] for data in traindata])
         neg_attr= np.array([data[6] for data in traindata])
         if training:
-            neg_img = np.array([data[7] for data in traindata])
+            neg_img = None # np.array([data[7] for data in traindata])
         else:
             neg_img = None
         #labels_b = pad(labels_ba,-1)
@@ -170,7 +171,6 @@ def make_mitstates_dataset(img_dir,
         #labels_b = np.genfromtxt(label_path, dtype=float, usecols=range(116, 231))
         #labels_b = labels_b[:, np.array([ATT_ID[att_name] for att_name in att_names])]
 
-        # no shuffle TODO in MITdatasetclass
 
         if shuffle:
             idx = np.random.permutation(len(img_paths))
@@ -180,11 +180,11 @@ def make_mitstates_dataset(img_dir,
             attr= attr[idx]
             obj = obj[idx]
             obj_id = obj_id[idx]
-            neg_img = neg_img[idx]
+#            neg_img = neg_img[idx]
             neg_attr = neg_attr[idx]
         if training:
 
-            def map_fn_(img,neg_img, label,label_b,attr,obj,obj_id,neg_attr):
+            def map_fn_(img, label,label_b,attr,obj,obj_id,neg_attr):
                 img = tf.image.resize(img, [load_size, load_size])
                 # img = tl.random_rotate(img, 5)
                 img = tf.image.random_flip_left_right(img)
@@ -193,16 +193,16 @@ def make_mitstates_dataset(img_dir,
                 # img = tl.random_grayscale(img, p=0.3)
                 img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
 
-                neg_img = tf.image.resize(neg_img, [load_size, load_size])
-                # img = tl.random_rotate(img, 5)
-                neg_img = tf.image.random_flip_left_right(neg_img)
-                neg_img = tf.image.random_crop(neg_img, [crop_size, crop_size, 3])
-                # img = tl.color_jitter(img, 25, 0.2, 0.2, 0.1)
-                # img = tl.random_grayscale(img, p=0.3)
-                neg_img = tf.clip_by_value(neg_img, 0, 255) / 127.5 - 1
+                # neg_img = tf.image.resize(neg_img, [load_size, load_size])
+                # # img = tl.random_rotate(img, 5)
+                # neg_img = tf.image.random_flip_left_right(neg_img)
+                # neg_img = tf.image.random_crop(neg_img, [crop_size, crop_size, 3])
+                # # img = tl.color_jitter(img, 25, 0.2, 0.2, 0.1)
+                # # img = tl.random_grayscale(img, p=0.3)
+                # neg_img = tf.clip_by_value(neg_img, 0, 255) / 127.5 - 1
                 #label = (label + 1) // 2
 
-                return img, label,label_b,attr,obj,obj_id,neg_attr,neg_img
+                return img, label,label_b,attr,obj,obj_id,neg_attr#,neg_img
         else:
             def map_fn_(img, label,label_b,attr,obj,obj_id,neg_attr):
                 img = tf.image.resize(img, [load_size, load_size])
@@ -233,6 +233,118 @@ def make_mitstates_dataset(img_dir,
 
         return dataset, len_dataset #,img_deck,len_img_deck
 
+
+class AoCelvrDataSet():
+
+    def __init__(self):
+        self.root = "./data/ao_clevr"
+        self.img_path = "./data/ao_clevr/images"
+        self.split_file_path  = "./data/ao_clevr/metadata_pickles/metadata_ao_clevr__UV_random__comp_seed_2000__seen_seed_0__train.pkl"
+        self.attrs, self.objs, self.pairs, self.train_pairs, self.test_pairs = self.parse_split()
+      #@  self.train_pairs = self.train_pairs[1:200]
+       # self.test_pairs = self.test_pairs[1:200]
+        self.attr2idx = {attr: idx for idx, attr in enumerate(self.attrs)}
+        self.obj2idx = {obj: idx for idx, obj in enumerate(self.objs)}
+        self.pair2idx = {pair: idx for idx, pair in enumerate(self.pairs)}
+
+        self.train_data, self.test_data, self.test_data_query = self.get_split_info()
+
+        samples_grouped_by_obj = [[] for _ in range(len(self.objs))]
+        for i, x in enumerate(self.train_data):
+            samples_grouped_by_obj[x[4]].append(i)
+
+        self.neg_pool = []  # [obj_id][attr_id] => list of sample id
+        for obj_id in range(len(self.objs)):
+            self.neg_pool.append([])
+            for attr_id in range(len(self.attrs)):
+                self.neg_pool[obj_id].append(
+                    [i for i in samples_grouped_by_obj[obj_id] if
+                     self.train_data[i][3] != attr_id]
+                )
+        #
+        self.query_data = []
+        obj_attr_ids = self.noun2adjs_id_dataset(self.train_data)
+        for i, datas in enumerate(self.train_data):
+
+                size = len(obj_attr_ids[datas[2]])
+                # for attr_id in np.random.choice(obj_attr_ids[datas[2]], np.random.choice(size), replace=False):
+                for attr_id in obj_attr_ids[datas[2]]:
+                    if attr_id != self.train_data[i][3]:
+                        query_d = datas
+                        query_d = query_d + [attr_id] + [self.attrs[attr_id]] #+ missing_neg_sample
+                        self.query_data.append(query_d)
+        #
+        # self.data = self.query_data if training else self.test_data_query
+
+    def get_data(self,training=True):
+
+            return self.query_data if training else self.test_data_query
+
+    def parse_split(self):
+        infile = open(self.split_file_path, 'rb')
+        data = pickle.load(infile)
+        return data['attrs'],data['objs'],data['all_open_pairs'],data['train_data'],data['test_data']
+
+    def get_split_info(self):
+        train_data = self.parse_data_pair(self.train_pairs)
+        test_data = self.parse_data_pair(self.test_pairs)
+        test_data_query = []
+        noun2adjs_test_dataset = self.noun2adjs_dataset(test_data)
+        for idx, data in enumerate(test_data):
+            attr = data[1]
+            obj = data[2]
+            for target_adj in noun2adjs_test_dataset[obj]:
+                if target_adj != attr:
+                    query = data + [self.attr2idx[target_adj], target_adj, self.obj2idx[obj], obj]
+                    test_data_query.append(query)
+
+        return train_data,test_data,test_data_query
+
+    def sample_negative(self,data, attr_id, obj_id):
+            id = np.random.choice(self.neg_pool[obj_id][attr_id])
+            return data[id][0]
+
+    def noun2adjs_id_dataset(self, data):
+        noun2adjs = {}
+        for i, img in enumerate(data):
+            adj = img[3]
+            noun = img[2]
+            if noun not in noun2adjs.keys():
+                noun2adjs[noun] = []
+            if adj not in noun2adjs[noun]:
+                noun2adjs[noun].append(adj)
+        # for noun, adjs in noun2adjs.items():
+        #     assert len(adjs) >= 2
+        return noun2adjs
+
+    def noun2adjs_dataset(self,data):
+        noun2adjs = {}
+        for i, img in enumerate(data):
+            adj = img[1]
+            noun = img[2]
+            if noun not in noun2adjs.keys():
+                noun2adjs[noun] = []
+            if adj not in noun2adjs[noun]:
+                noun2adjs[noun].append(adj)
+        # for noun, adjs in noun2adjs.items():
+        #     assert len(adjs) >= 2
+        return noun2adjs
+
+    def parse_data_pair(self,pair):
+        data = []
+        for instance in pair:
+
+            image, attr, obj = instance[0], instance[1], instance[2]
+
+            if attr == 'NA' or (attr, obj) not in self.pairs:
+                # ignore instances with unlabeled attributes
+                # ignore instances that are not in current split
+                continue
+
+            data_i = [py.join(self.img_path, image), attr, obj, self.attr2idx[attr], self.obj2idx[obj]]
+            data.append(data_i)
+
+        return data
 
 class MitStatesDataSet():
 
@@ -556,3 +668,4 @@ class MitStatesDataSet():
 
         img_per_attr=dict(sorted(img_per_attr.items(), key=lambda item: item[1],reverse=True))
         return img_per_attr
+

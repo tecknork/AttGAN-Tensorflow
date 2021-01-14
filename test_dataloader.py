@@ -78,12 +78,12 @@ sess.__enter__()  # make default
 # get the next item
 #while True:
 with tf.Session() as sess:
-        train_dataset, len_train_dataset,img_deck,len_img_deck = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
+        train_dataset, len_train_dataset = data.make_mitstates_dataset(args.img_dir, args.train_label_path, args.att_names,
                                                                        args.batch_size,
                                                                        load_size=args.load_size, crop_size=args.crop_size,
                                                                        training=True, shuffle=True, repeat=None)
         print(len_train_dataset)
-        feature_extractor = Features()
+        #feature_extractor = Features()
         #img_features = feature_extractor.get_dataset_features(img_deck)
        # print(img_features)
 
@@ -103,9 +103,9 @@ with tf.Session() as sess:
         # # print(train_dataset)
         #
         train_iter = train_dataset.make_one_shot_iterator()
-        xa, a_x ,b ,attr, obj, obj_id,neg_attr, xb_ref = train_iter.get_next()
+        xa, a_x ,b ,attr, obj, obj_id,neg_attr = train_iter.get_next()
         print(xa)
-        print(feature_extractor.generate_features_for_imgs(xa.eval()))
+        #print(feature_extractor.generate_features_for_imgs(xa.eval()))
 
         #
         #
