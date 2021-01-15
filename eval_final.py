@@ -209,10 +209,16 @@ class EvaluateNN():
 
 
     def evaluate(self):
-        sims = self.test_query_img_features.dot(self.img_features.T)
-        # for i, t in enumerate(test_queries):
-        #     sims[i, t['source_img_id']] = -10e10  # remove query image
-        nn_result_labels = [np.argsort(-sims[i, :])[:110] for i in range(sims.shape[0])]
+        nn_result_labels_all = []
+        for chunk in tqdm.tqdm(utils.chunks(self.test_query_img_features, 10240), total=len(self.test_query_img_features) // 10240):
+
+            sims = chunk.dot(self.img_features.T)
+            # for i, t in enumerate(test_queries):
+            #     sims[i, t['source_img_id']] = -10e10  # remove query image
+            nn_result_labels = [np.argsort(-sims[i, :])[:110] for i in range(sims.shape[0])]
+            nn_result_labels_all.extend(nn_result_labels)
+
+        nn_result_labels = nn_result_labels_all
         print(len(nn_result_labels))
         print(len(nn_result_labels[0]))
         # print(nn_result[0])
