@@ -346,6 +346,30 @@ class AoCelvrDataSet():
 
         return data
 
+    def get_image_dataset(self, dataset):
+        images_path = [data[0] for data in dataset]
+        attr = [data[3] for data in dataset]
+        obj = [data[4] for data in dataset]
+
+        dataset = tf.data.Dataset.from_tensor_slices((images_path, attr, obj))
+        import multiprocessing
+        n_map_threads = multiprocessing.cpu_count()
+
+        def map_fn_(path, attr, obj):
+            load_size = 128
+            crop_size = 128
+            img = tf.io.read_file(path)
+            img = tf.image.decode_png(img, 3)
+            img = tf.image.resize(img, [load_size, load_size])
+            img = tl.center_crop(img, size=crop_size)
+            img = tf.clip_by_value(img, 0, 255) / 127.5 - 1
+            # label = (label + 1) // 2
+            return img, attr, obj
+
+        dataset = dataset.map(map_fn_, num_parallel_calls=n_map_threads)
+        dataset = dataset.batch(2)
+        return dataset, len(images_path) // 2
+
 class MitStatesDataSet():
 
     def __init__(self,training=True):

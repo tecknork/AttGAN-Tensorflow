@@ -101,13 +101,14 @@ def sample_graph():
         sample = np.transpose(x_opt_list, (1, 2, 0, 3, 4))
         sample = np.reshape(sample, (sample.shape[0], -1, sample.shape[2] * sample.shape[3], sample.shape[4]))
         for _, s in enumerate(sample):
-            cnt += 1
+
             if i>0:
                 #modified img with a attribute with b
                 im.imwrite(s, '%s/%d.jpg' % (save_dir_eval, cnt))
             else:
                 #reconstructed with a attribute
                 im.imwrite(s, '%s/%d.jpg' % (save_dir_reconstructed, cnt))
+            cnt += 1
 
     def run():
         cnt = 0
