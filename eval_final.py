@@ -210,7 +210,7 @@ class EvaluateNN():
 
     def evaluate(self):
         nn_result_labels_all = []
-        for chunk in tqdm.tqdm(utils.chunks(self.test_query_img_features, 10240), total=len(self.test_query_img_features) // 10240):
+        for chunk in tqdm.tqdm(utils.chunks(self.test_query_img_features, 1024), total=len(self.test_query_img_features) // 1024):
 
             sims = chunk.dot(self.img_features.T)
             # for i, t in enumerate(test_queries):
