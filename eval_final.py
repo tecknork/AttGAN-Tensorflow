@@ -193,7 +193,7 @@ class EvaluateNN():
         ### query_features ####
         query_features = QueryGenerateFeatures()
         self.test_query_img_features = query_features.get_query_features()
-
+        self.test_query_img_features =  self.test_query_img_features[0:50000]
         for i in range(self.test_query_img_features.shape[0]):
             self.test_query_img_features[i, :] /= np.linalg.norm(self.test_query_img_features[i, :])
         for i in range(self.img_features.shape[0]):
